@@ -5,8 +5,8 @@ export default function App() {
   const [transactions, setTransactions] = useState([])
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
-  const [type, setType] = useState('expense') // 'expense' או 'income'
-  const [savingsGoal, setSavingsGoal] = useState(5000) // יעד חיסכון ברירת מחדל
+  const [type, setType] = useState('expense')
+  const [savingsGoal, setSavingsGoal] = useState(5000)
 
   useEffect(() => {
     fetchTransactions()
@@ -22,7 +22,6 @@ export default function App() {
     e.preventDefault()
     if (!title || !amount) return
 
-    // אם זו הוצאה נשמור כמספר שלילי, אם הכנסה כחיובי (או נשמור לפי סוג)
     const numericAmount = parseFloat(amount)
     const finalAmount = type === 'expense' ? -Math.abs(numericAmount) : Math.abs(numericAmount)
 
@@ -48,14 +47,9 @@ export default function App() {
     }
   }
 
-  // חישובים פיננסיים
   const totalIncome = transactions.filter(t => Number(t.amount) > 0).reduce((sum, t) => sum + Number(t.amount), 0)
   const totalExpense = transactions.filter(t => Number(t.amount) < 0).reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0)
   const netBalance = totalIncome - totalExpense
-
-  // חישוב קצב חיסכון חזוי ויעד
-  // נניח חישוב לפי ממוצע או חודשי, לצורך הפשטות ניקח את היתרה כקצב חודשי נוכחי
-  const monthsToGoal = netBalance > 0 ? Math.max(1, Math.ceil((savingsGoal - netBalance) / (netBalance || 1))) : للחיסכון ? "אין חיסכון חיובי כרגע" : "אין חיסכון"
 
   return (
     <div style={{ maxWidth: '600px', margin: '30px auto', padding: '24px', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl', textAlign: 'right', background: '#f8fafc', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
@@ -93,7 +87,7 @@ export default function App() {
         </div>
         <p style={{ margin: 0, fontSize: '13px', opacity: 0.9 }}>
           {netBalance > 0 
-            ? `בקצב הנוכחי (או ביתרת החודש), תיצור חיסכון משוער ליעד של ₪${savingsGoal.toLocaleString()} בקרוב מאוד!`
+            ? `בקצב הנוכחי, אתה בדרך ליעד של ₪${savingsGoal.toLocaleString()}!`
             : 'הגדל את ההכנסות או צמצם הוצאות כדי להתחיל לצבור חיסכון ליעד שלך.'}
         </p>
       </div>
