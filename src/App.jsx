@@ -323,11 +323,9 @@ export default function App() {
                     onChange={(e) => setCategory(e.target.value)}
                     style={{ width: '100%', padding: '12px', boxSizing: 'border-box', borderRadius: '10px', border: '1px solid #334155', fontSize: '13px', background: '#0f172a', color: 'white', outline: 'none' }}
                   >
-                    {Object.keys(categories).cat => (
-                      Object.keys(categories).map(cat => (
-                        <option key={cat} value={cat}>{categories[cat].icon} {cat}</option>
-                      ))
-                    )}
+                    {Object.keys(categories).map(cat => (
+                      <option key={cat} value={cat}>{categories[cat].icon} {cat}</option>
+                    ))}
                   </select>
                 </div>
               )}
