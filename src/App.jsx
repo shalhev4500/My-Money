@@ -27,13 +27,13 @@ export default function App() {
 
     const { data, error } = await supabase
       .from('expenses')
-      .insert([{ title, amount: finalAmount }])
+      .insert([{ title: title.trim(), amount: finalAmount }])
       .select()
 
     if (error) {
-      console.log('Error adding transaction:', error)
-      alert('שגיאה בהוספת הנתון, ודא שהטבלה בסופאבייס מכילה את העמודות הנכונות.')
-    } else {
+      console.log('Supabase Error Details:', error)
+      alert('שגיאה בסופאבייס: ' + error.message)
+    } else if (data) {
       setTransactions([data[0], ...transactions])
       setTitle('')
       setAmount('')
