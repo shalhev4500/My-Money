@@ -18,12 +18,10 @@ const TRANSLATIONS = {
     targetDate: 'Estimated Target Date',
     noTarget: 'Save consistently to calculate target date',
     goalReached: 'Goal Reached! 🎉',
-    budgetLimit: 'General Budget Limit',
     categoryBreakdown: 'Expense Breakdown by Category',
     searchPlaceholder: 'Quick search...',
     noTransactions: 'No transactions recorded for this month.',
     recurringBadge: 'Recurring 🔄',
-    workHours: 'work hours',
     newTransaction: 'New Transaction',
     expenseType: 'Expense 📉',
     incomeType: 'Income 📈',
@@ -36,11 +34,8 @@ const TRANSLATIONS = {
     exportCSV: 'Export Backup (CSV) 📊',
     subscriptionRadar: 'Subscription Radar',
     yearlyTotal: 'Total yearly commitment:',
-    noSubscriptions: 'No active subscriptions this month.',
     systemSettings: 'System Settings',
-    hourlyWage: 'Hourly Wage (₪)',
-    categoryLimits: 'Category Limits',
-    themeToggle: 'Appearance',
+    themeToggle: 'Appearance Mode',
     darkMode: 'Dark Mode 🌙',
     lightMode: 'Light Mode ☀️',
     language: 'Language 🌐'
@@ -61,12 +56,10 @@ const TRANSLATIONS = {
     targetDate: 'תאריך הגעה משוער ליעד',
     noTarget: 'חסוך בעקביות כדי לחשב תאריך יעד',
     goalReached: 'היעד הושג בהצלחה! 🎉',
-    budgetLimit: 'מסגרת תקציב כללית',
     categoryBreakdown: 'פילוח הוצאות לפי קטגוריות',
     searchPlaceholder: 'חיפוש מהיר...',
     noTransactions: 'אין תנועות להצגה בחודש זה.',
     recurringBadge: 'קבוע 🔄',
-    workHours: 'שעות עבודה',
     newTransaction: 'הוספת תנועה חדשה',
     expenseType: 'הוצאה 📉',
     incomeType: 'הכנסה 📈',
@@ -79,415 +72,25 @@ const TRANSLATIONS = {
     exportCSV: 'הורד קובץ גיבוי (CSV) 📊',
     subscriptionRadar: 'רדאר מנויים והוצאות קבועות',
     yearlyTotal: 'עלות שנתית מצטברת:',
-    noSubscriptions: 'אין מנויים פעילים החודש.',
     systemSettings: 'הגדרות מערכת',
-    hourlyWage: 'שכר שעתי (₪)',
-    categoryLimits: 'תקרת קטגוריות',
-    themeToggle: 'תצוגה',
+    themeToggle: 'מצב תצוגה',
     darkMode: 'מצב לילה 🌙',
     lightMode: 'מצב יום ☀️',
     language: 'שפה 🌐'
-  },
-  ar: {
-    appName: 'My Money',
-    tagline: 'إدارة الثروة الشخصية والمنزلية',
-    dashboard: 'نظرة عامة',
-    transactions: 'المعاملات',
-    budgets: 'الأهداف والميزانية',
-    tools: 'الأدوات والتحليلات',
-    netBalance: 'الرصيد الشهري الصافي',
-    income: 'الدخل',
-    expenses: 'المصروفات',
-    safeSpend: 'الميزانية اليومية الآمنة',
-    daysLeft: 'أيام متبقية',
-    savingsGoal: 'هدف التوفير',
-    targetDate: 'تاريخ الوصول المتوقع',
-    noTarget: 'وفر باستمرار لحساب التاريخ المستهدف',
-    goalReached: 'تم تحقيق الهدف! 🎉',
-    budgetLimit: 'حد الميزانية العام',
-    categoryBreakdown: 'تفصيل المصروفات حسب الفئة',
-    searchPlaceholder: 'بحث سريع...',
-    noTransactions: 'لا توجد معاملات لهذا الشهر.',
-    recurringBadge: 'متكرر 🔄',
-    workHours: 'ساعات العمل',
-    newTransaction: 'إضافة معاملة جديدة',
-    expenseType: 'مصروف 📉',
-    incomeType: 'دخل 📈',
-    titleLabel: 'الوصف',
-    titlePlaceholder: 'مثال: سوبرماركت، وقود...',
-    amountLabel: 'المبلغ',
-    categoryLabel: 'الفئة',
-    recurringCheckbox: 'اشتراك شهري / مصروف ثابت',
-    saveButton: 'حفظ المعاملة',
-    exportCSV: 'تصدير نسخة احتياطية (CSV) 📊',
-    subscriptionRadar: 'رادار الاشتراكات',
-    yearlyTotal: 'التكلفة السنوية الإجمالية:',
-    noSubscriptions: 'لا توجد اشتراكات نشطة هذا الشهر.',
-    systemSettings: 'إعدادات النظام',
-    hourlyWage: 'الأجر بالساعة',
-    categoryLimits: 'حدود الفئات',
-    themeToggle: 'المظهر',
-    darkMode: 'الوضع الليلي 🌙',
-    lightMode: 'الوضع النهاري ☀️',
-    language: 'اللغة 🌐'
-  },
-  ru: {
-    appName: 'My Money',
-    tagline: 'Управление личными и домашними финансами',
-    dashboard: 'Обзор',
-    transactions: 'Транзакции',
-    budgets: 'Бюджет и цели',
-    tools: 'Инструменты',
-    netBalance: 'Чистый баланс за месяц',
-    income: 'Доходы',
-    expenses: 'Расходы',
-    safeSpend: 'Лимит на сегодня',
-    daysLeft: 'дней осталось',
-    savingsGoal: 'Цель накопления',
-    targetDate: 'Ожидаемая дата достижения цели',
-    noTarget: 'Копите регулярно для расчета даты',
-    goalReached: 'Цель достигнута! 🎉',
-    budgetLimit: 'Общий лимит бюджета',
-    categoryBreakdown: 'Расходы по категориям',
-    searchPlaceholder: 'Быстрый поиск...',
-    noTransactions: 'Нет транзакций за этот месяц.',
-    recurringBadge: 'Регулярный 🔄',
-    workHours: 'часов работы',
-    newTransaction: 'Новая транзакция',
-    expenseType: 'Расход 📉',
-    incomeType: 'Доход 📈',
-    titleLabel: 'Описание',
-    titlePlaceholder: 'например: Супермаркет, Топливо...',
-    amountLabel: 'Сумма',
-    categoryLabel: 'Категория',
-    recurringCheckbox: 'Постоянный платеж / Подписка',
-    saveButton: 'Сохранить',
-    exportCSV: 'Экспорт бэкапа (CSV) 📊',
-    subscriptionRadar: 'Радар подписок',
-    yearlyTotal: 'Годовые обязательства:',
-    noSubscriptions: 'Нет активных подписок в этом месяце.',
-    systemSettings: 'Системные настройки',
-    hourlyWage: 'Почасовая ставка',
-    categoryLimits: 'Лимиты категорий',
-    themeToggle: 'Тема',
-    darkMode: 'Темная 🌙',
-    lightMode: 'Светлая ☀️',
-    language: 'Язык 🌐'
-  },
-  es: {
-    appName: 'My Money',
-    tagline: 'Gestión de Riqueza Personal',
-    dashboard: 'Resumen',
-    transactions: 'Transacciones',
-    budgets: 'Presupuestos',
-    tools: 'Herramientas',
-    netBalance: 'Balance Neto Mensual',
-    income: 'Ingresos',
-    expenses: 'Gastos',
-    safeSpend: 'Gasto Diario Recomendado',
-    daysLeft: 'días restantes',
-    savingsGoal: 'Meta de Ahorro',
-    targetDate: 'Fecha estimada para la meta',
-    noTarget: 'Ahorra consistentemente para calcular la fecha',
-    goalReached: '¡Meta alcanzada! 🎉',
-    budgetLimit: 'Límite de Presupuesto',
-    categoryBreakdown: 'Desglose de Gastos',
-    searchPlaceholder: 'Búsqueda rápida...',
-    noTransactions: 'Sin transacciones este mes.',
-    recurringBadge: 'Recurrente 🔄',
-    workHours: 'horas de trabajo',
-    newTransaction: 'Nueva Transacción',
-    expenseType: 'Gasto 📉',
-    incomeType: 'Ingreso 📈',
-    titleLabel: 'Descripción',
-    titlePlaceholder: 'ej. Supermercado...',
-    amountLabel: 'Monto',
-    categoryLabel: 'Categoría',
-    recurringCheckbox: 'Suscripción / Gasto fijo',
-    saveButton: 'Guardar',
-    exportCSV: 'Exportar CSV 📊',
-    subscriptionRadar: 'Radar de Suscripciones',
-    yearlyTotal: 'Compromiso anual total:',
-    noSubscriptions: 'Sin suscripciones activas.',
-    systemSettings: 'Configuración',
-    hourlyWage: 'Salario por hora',
-    categoryLimits: 'Límites por categoría',
-    themeToggle: 'Tema',
-    darkMode: 'Oscuro 🌙',
-    lightMode: 'Claro ☀️',
-    language: 'Idioma 🌐'
-  },
-  fr: {
-    appName: 'My Money',
-    tagline: 'Gestion de Patrimoine Personnel',
-    dashboard: 'Aperçu',
-    transactions: 'Transactions',
-    budgets: 'Budgets & Objectifs',
-    tools: 'Outils',
-    netBalance: 'Solde Mensuel Net',
-    income: 'Revenus',
-    expenses: 'Dépenses',
-    safeSpend: 'Dépense Quotidienne Conseillée',
-    daysLeft: 'jours restants',
-    savingsGoal: 'Objectif d\'épargne',
-    targetDate: 'Date cible estimée',
-    noTarget: 'Épargnez régulièrement pour calculer la date',
-    goalReached: 'Objectif atteint ! 🎉',
-    budgetLimit: 'Limite de Budget Général',
-    categoryBreakdown: 'Répartition par Catégorie',
-    searchPlaceholder: 'Recherche...',
-    noTransactions: 'Aucune transaction ce mois-ci.',
-    recurringBadge: 'Récurrent 🔄',
-    workHours: 'heures de travail',
-    newTransaction: 'Nouvelle Transaction',
-    expenseType: 'Dépense 📉',
-    incomeType: 'Revenu 📈',
-    titleLabel: 'Description',
-    titlePlaceholder: 'ex. Supermarché...',
-    amountLabel: 'Montant',
-    categoryLabel: 'Catégorie',
-    recurringCheckbox: 'Abonnement / Dépense fixe',
-    saveButton: 'Enregistrer',
-    exportCSV: 'Exporter CSV 📊',
-    subscriptionRadar: 'Radar des Abonnements',
-    yearlyTotal: 'Engagement annuel total:',
-    noSubscriptions: 'Aucun abonnement actif.',
-    systemSettings: 'Paramètres',
-    hourlyWage: 'Taux horaire',
-    categoryLimits: 'Limites de catégories',
-    themeToggle: 'Thème',
-    darkMode: 'Sombre 🌙',
-    lightMode: 'Clair ☀️',
-    language: 'Langue 🌐'
-  },
-  de: {
-    appName: 'My Money',
-    tagline: 'Persönliches Finanzmanagement',
-    dashboard: 'Übersicht',
-    transactions: 'Transaktionen',
-    budgets: 'Budgets & Ziele',
-    tools: 'Werkzeuge',
-    netBalance: 'Nettomonatsbilanz',
-    income: 'Einnahmen',
-    expenses: 'Ausgaben',
-    safeSpend: 'Empfohlenes Tagesbudget',
-    daysLeft: 'verbleibende Tage',
-    savingsGoal: 'Sparziel',
-    targetDate: 'Voraussichtliches Zieldatum',
-    noTarget: 'Sparen Sie regelmäßig, um das Datum zu berechnen',
-    goalReached: 'Ziel erreicht! 🎉',
-    budgetLimit: 'Gesamtbudgetlimit',
-    categoryBreakdown: 'Ausgaben nach Kategorien',
-    searchPlaceholder: 'Schnellsuche...',
-    noTransactions: 'Keine Transaktionen diesen Monat.',
-    recurringBadge: 'Wiederkehrend 🔄',
-    workHours: 'Arbeitsstunden',
-    newTransaction: 'Neue Transaktion',
-    expenseType: 'Ausgabe 📉',
-    incomeType: 'Einnahme 📈',
-    titleLabel: 'Beschreibung',
-    titlePlaceholder: 'z.B. Supermarkt...',
-    amountLabel: 'Betrag',
-    categoryLabel: 'Kategorie',
-    recurringCheckbox: 'Abo / Fixkosten',
-    saveButton: 'Speichern',
-    exportCSV: 'CSV Export 📊',
-    subscriptionRadar: 'Abo-Radar',
-    yearlyTotal: 'Gesamtverpflichtung pro Jahr:',
-    noSubscriptions: 'Keine aktiven Abos.',
-    systemSettings: 'Systemeinstellungen',
-    hourlyWage: 'Stundenlohn',
-    categoryLimits: 'Kategorielimits',
-    themeToggle: 'Design',
-    darkMode: 'Dunkel 🌙',
-    lightMode: 'Hell ☀️',
-    language: 'Sprache 🌐'
-  },
-  it: {
-    appName: 'My Money',
-    tagline: 'Gestione Finanziaria Personale',
-    dashboard: 'Panoramica',
-    transactions: 'Transazioni',
-    budgets: 'Budget e Obiettivi',
-    tools: 'Strumenti',
-    netBalance: 'Bilancio Netto Mensile',
-    income: 'Entrate',
-    expenses: 'Uscite',
-    safeSpend: 'Spesa Giornaliera Consigliata',
-    daysLeft: 'giorni rimanenti',
-    savingsGoal: 'Obiettivo di Risparmio',
-    targetDate: 'Data stimata di raggiungimento',
-    noTarget: 'Risparmia regolarmente per calcolare la data',
-    goalReached: 'Obiettivo raggiunto! 🎉',
-    budgetLimit: 'Limite Budget Generale',
-    categoryBreakdown: 'Ripartizione Spese',
-    searchPlaceholder: 'Ricerca rapida...',
-    noTransactions: 'Nessuna transazione questo mese.',
-    recurringBadge: 'Ricorrente 🔄',
-    workHours: 'ore di lavoro',
-    newTransaction: 'Nuova Transazione',
-    expenseType: 'Spesa 📉',
-    incomeType: 'Entrata 📈',
-    titleLabel: 'Descrizione',
-    titlePlaceholder: 'es. Supermercato...',
-    amountLabel: 'Importo',
-    categoryLabel: 'Categoria',
-    recurringCheckbox: 'Abbonamento / Spesa fissa',
-    saveButton: 'Salva',
-    exportCSV: 'Esporta CSV 📊',
-    subscriptionRadar: 'Radar Abbonamenti',
-    yearlyTotal: 'Impegno annuale totale:',
-    noSubscriptions: 'Nessun abbonamento attivo.',
-    systemSettings: 'Impostazioni',
-    hourlyWage: 'Tariffa oraria',
-    categoryLimits: 'Limiti categorie',
-    themeToggle: 'Tema',
-    darkMode: 'Scuro 🌙',
-    lightMode: 'Chiaro ☀️',
-    language: 'Lingua 🌐'
-  },
-  zh: {
-    appName: 'My Money',
-    tagline: '个人财富与家庭财务管理',
-    dashboard: '概览',
-    transactions: '交易记录',
-    budgets: '预算与目标',
-    tools: '工具与分析',
-    netBalance: '本月净结余',
-    income: '收入',
-    expenses: '支出',
-    safeSpend: '每日安全支出额',
-    daysLeft: '剩余天数',
-    savingsGoal: '储蓄目标',
-    targetDate: '预计达成日期',
-    noTarget: '持续储蓄以计算目标日期',
-    goalReached: '目标达成！ 🎉',
-    budgetLimit: '总预算限额',
-    categoryBreakdown: '按类别支出的明细',
-    searchPlaceholder: '快速搜索...',
-    noTransactions: '本月暂无交易记录。',
-    recurringBadge: '定期 🔄',
-    workHours: '工作小时',
-    newTransaction: '新增交易',
-    expenseType: '支出 📉',
-    incomeType: '收入 📈',
-    titleLabel: '描述',
-    titlePlaceholder: '例如：超市、燃油...',
-    amountLabel: '金额',
-    categoryLabel: '类别',
-    recurringCheckbox: '定期订阅 / 固定支出',
-    saveButton: '保存交易',
-    exportCSV: '导出备份 (CSV) 📊',
-    subscriptionRadar: '订阅雷达',
-    yearlyTotal: '年度总承诺：',
-    noSubscriptions: '本月没有活跃订阅。',
-    systemSettings: '系统设置',
-    hourlyWage: '时薪',
-    categoryLimits: '类别限额',
-    themeToggle: '外观',
-    darkMode: '深色模式 🌙',
-    lightMode: '浅色模式 ☀️',
-    language: '语言 🌐'
-  },
-  ja: {
-    appName: 'My Money',
-    tagline: 'パーソナル資産管理',
-    dashboard: '概要',
-    transactions: '取引履歴',
-    budgets: '予算と目標',
-    tools: 'ツール',
-    netBalance: '今月の純残高',
-    income: '収入',
-    expenses: '支出',
-    safeSpend: '本日の推奨支出',
-    daysLeft: '残り日数',
-    savingsGoal: '貯蓄目標',
-    targetDate: '目標達成予定日',
-    noTarget: '継続して貯蓄して目標日を計算',
-    goalReached: '目標達成！ 🎉',
-    budgetLimit: '全体予算限度額',
-    categoryBreakdown: 'カテゴリ別支出',
-    searchPlaceholder: 'クイック検索...',
-    noTransactions: '今月の取引はありません。',
-    recurringBadge: '定期 🔄',
-    workHours: '労働時間',
-    newTransaction: '新規取引',
-    expenseType: '支出 📉',
-    incomeType: '収入 📈',
-    titleLabel: '説明',
-    titlePlaceholder: '例: スーパー、ガソリン...',
-    amountLabel: '金額',
-    categoryLabel: 'カテゴリ',
-    recurringCheckbox: '定期的なサブスク / 固定費',
-    saveButton: '保存する',
-    exportCSV: 'CSVエクスポート 📊',
-    subscriptionRadar: 'サブスクレーダー',
-    yearlyTotal: '年間合計負担:',
-    noSubscriptions: '今月の有効なサブスクはありません。',
-    systemSettings: 'システム設定',
-    hourlyWage: '時給',
-    categoryLimits: 'カテゴリ制限',
-    themeToggle: '外観',
-    darkMode: 'ダークモード 🌙',
-    lightMode: 'ライトモード ☀️',
-    language: '言語 🌐'
-  },
-  pt: {
-    appName: 'My Money',
-    tagline: 'Gestão de Patrimônio Pessoal',
-    dashboard: 'Visão Geral',
-    transactions: 'Transações',
-    budgets: 'Orçamentos e Metas',
-    tools: 'Ferramentas',
-    netBalance: 'Saldo Mensal Líquido',
-    income: 'Receitas',
-    expenses: 'Despesas',
-    safeSpend: 'Gasto Diário Recomendado',
-    daysLeft: 'dias restantes',
-    savingsGoal: 'Meta de Poupança',
-    targetDate: 'Data estimada para a meta',
-    noTarget: 'Poupe consistentemente para calcular a data',
-    goalReached: 'Meta alcançada! 🎉',
-    budgetLimit: 'Limite de Orçamento Geral',
-    categoryBreakdown: 'Detalhamento por Categoria',
-    searchPlaceholder: 'Busca rápida...',
-    noTransactions: 'Nenhuma transação neste mês.',
-    recurringBadge: 'Recorrente 🔄',
-    workHours: 'horas de trabalho',
-    newTransaction: 'Nova Transação',
-    expenseType: 'Despesa 📉',
-    incomeType: 'Receita 📈',
-    titleLabel: 'Descrição',
-    titlePlaceholder: 'ex. Supermercado, Combustível...',
-    amountLabel: 'Valor',
-    categoryLabel: 'Categoria',
-    recurringCheckbox: 'Assinatura / Despesa fixa',
-    saveButton: 'Salvar',
-    exportCSV: 'Exportar Backup (CSV) 📊',
-    subscriptionRadar: 'Radar de Assinaturas',
-    yearlyTotal: 'Compromisso anual total:',
-    noSubscriptions: 'Sem assinaturas ativas este mês.',
-    systemSettings: 'Configurações',
-    hourlyWage: 'Salário por Hora',
-    categoryLimits: 'Limites de Categorias',
-    themeToggle: 'Aparência',
-    darkMode: 'Modo Escuro 🌙',
-    lightMode: 'Modo Claro ☀️',
-    language: 'Idioma 🌐'
   }
 }
 
 const INITIAL_CATEGORIES = {
-  'מזון וסופר': { icon: '🛒', color: '#059669', limit: 2500 },
-  'שכירות ודיור': { icon: '🏠', color: '#2563eb', limit: 4000 },
-  'תחבורה ודלק': { icon: '⛽', color: '#d97706', limit: 1200 },
-  'בילויים ופנאי': { icon: '🎉', color: '#db2777', limit: 1000 },
-  'חשבונות וארנונה': { icon: '💡', color: '#7c3aed', limit: 900 },
-  'שונות': { icon: '📦', color: '#475569', limit: 500 }
+  'מזון וסופר': { icon: '🛒', color: '#10b981', limit: 2500 },
+  'שכירות ודיור': { icon: '🏠', color: '#3b82f6', limit: 4000 },
+  'תחבורה ודלק': { icon: '⛽', color: '#f59e0b', limit: 1200 },
+  'בילויים ופנאי': { icon: '🎉', color: '#ec4899', limit: 1000 },
+  'חשבונות וארנונה': { icon: '💡', color: '#8b5cf6', limit: 900 },
+  'שונות': { icon: '📦', color: '#64748b', limit: 500 }
 }
 
 export default function App() {
-  const [lang, setLang] = useState('en')
+  const [lang, setLang] = useState('he')
   const [theme, setTheme] = useState(() => localStorage.getItem('mymoney_theme') || 'dark')
   const [activeTab, setActiveTab] = useState('dashboard')
   const [transactions, setTransactions] = useState([])
@@ -501,8 +104,7 @@ export default function App() {
   const [isRecurring, setIsRecurring] = useState(false)
 
   const [savingsGoalAmount, setSavingsGoalAmount] = useState(() => Number(localStorage.getItem('mymoney_savings_amount')) || 50000)
-  const [savingsGoalName, setSavingsGoalName] = useState(() => localStorage.getItem('mymoney_savings_name') || 'Dream Vacation / Wealth Growth ✈️')
-  const [hourlyWage, setHourlyWage] = useState(() => Number(localStorage.getItem('mymoney_hourly_wage')) || 60)
+  const [savingsGoalName, setSavingsGoalName] = useState(() => localStorage.getItem('mymoney_savings_name') || 'חופשה / רכב / הגדלת הון ✈️')
   const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(() => Number(localStorage.getItem('mymoney_monthly_budget')) || 9000)
   const [categories, setCategories] = useState(() => {
     const saved = localStorage.getItem('mymoney_categories')
@@ -515,7 +117,6 @@ export default function App() {
   useEffect(() => { localStorage.setItem('mymoney_theme', theme) }, [theme])
   useEffect(() => { localStorage.setItem('mymoney_savings_amount', savingsGoalAmount) }, [savingsGoalAmount])
   useEffect(() => { localStorage.setItem('mymoney_savings_name', savingsGoalName) }, [savingsGoalName])
-  useEffect(() => { localStorage.setItem('mymoney_hourly_wage', hourlyWage) }, [hourlyWage])
   useEffect(() => { localStorage.setItem('mymoney_monthly_budget', monthlyBudgetLimit) }, [monthlyBudgetLimit])
   useEffect(() => { localStorage.setItem('mymoney_categories', JSON.stringify(categories)) }, [categories])
 
@@ -591,11 +192,6 @@ export default function App() {
     targetDateString = t.noTarget
   }
 
-  const budgetPercentage = Math.min(Math.round((totalExpense / monthlyBudgetLimit) * 100), 100)
-  let budgetColor = theme === 'dark' ? '#059669' : '#10b981'
-  if (budgetPercentage > 75) budgetColor = '#d97706'
-  if (budgetPercentage >= 100) budgetColor = '#dc2626'
-
   const daysInMonth = new Date(selectedMonth.slice(0, 4), selectedMonth.slice(5, 7), 0).getDate()
   const currentDay = new Date().getDate()
   const daysRemaining = Math.max(daysInMonth - currentDay + 1, 1)
@@ -611,6 +207,24 @@ export default function App() {
       .filter(tr => tr.category === catName && Number(tr.amount) < 0)
       .reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
     return { name: catName, total, ...categories[catName] }
+  }).filter(cat => cat.total > 0)
+
+  // יצירת גרף עוגה מבוסס SVG חכם ונקי
+  let cumulativePercent = 0
+  const svgSlices = expensesByCategory.map((cat, index) => {
+    const percentage = totalExpense > 0 ? (cat.total / totalExpense) * 100 : 0
+    const startAngle = (cumulativePercent / 100) * 360
+    cumulativePercent += percentage
+    const endAngle = (cumulativePercent / 100) * 360
+
+    const x1 = 50 + 40 * Math.cos((Math.PI * (startAngle - 90)) / 180)
+    const y1 = 50 + 40 * Math.sin((Math.PI * (startAngle - 90)) / 180)
+    const x2 = 50 + 40 * Math.cos((Math.PI * (endAngle - 90)) / 180)
+    const y2 = 50 + 40 * Math.sin((Math.PI * (endAngle - 90)) / 180)
+    const largeArcFlag = percentage > 50 ? 1 : 0
+    const pathData = `M 50 50 L ${x1} ${y1} A 40 40 0 ${largeArcFlag} 1 ${x2} ${y2} Z`
+
+    return <path key={index} d={pathData} fill={cat.color} stroke={theme === 'dark' ? '#1e293b' : '#ffffff'} strokeWidth="1.5" />
   })
 
   function exportToCSV() {
@@ -628,46 +242,38 @@ export default function App() {
 
   const filteredTransactions = monthTransactions.filter(tr => tr.title.toLowerCase().includes(searchTerm.toLowerCase()) || (tr.category && tr.category.includes(searchTerm)))
 
-  const bgApp = theme === 'dark' ? '#0f172a' : '#f8fafc'
-  const cardBg = theme === 'dark' ? '#1e293b' : '#ffffff'
-  const textMain = theme === 'dark' ? '#f8fafc' : '#0f172a'
+  // עיצוב לפי מצב לילה / יום
+  const bgApp = theme === 'dark' ? '#0b0f19' : '#f8fafc'
+  const cardBg = theme === 'dark' ? '#131c31' : '#ffffff'
+  const textMain = theme === 'dark' ? '#f1f5f9' : '#0f172a'
   const textMuted = theme === 'dark' ? '#94a3b8' : '#64748b'
-  const borderColor = theme === 'dark' ? '#334155' : '#e2e8f0'
-  const inputBg = theme === 'dark' ? '#0b0f19' : '#f1f5f9'
+  const borderColor = theme === 'dark' ? '#1e293b' : '#e2e8f0'
+  const inputBg = theme === 'dark' ? '#090d16' : '#f1f5f9'
 
   return (
-    <div style={{ maxWidth: '480px', margin: '20px auto', minHeight: '92vh', padding: '20px 16px 90px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', direction: isRTL ? 'rtl' : 'ltr', textAlign: isRTL ? 'right' : 'left', background: bgApp, color: textMain, borderRadius: '28px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: `1px solid ${borderColor}`, position: 'relative', boxSizing: 'border-box', transition: 'all 0.3s ease' }}>
+    <div style={{ maxWidth: '480px', margin: '15px auto', minHeight: '94vh', padding: '16px 16px 100px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', direction: isRTL ? 'rtl' : 'ltr', textAlign: isRTL ? 'right' : 'left', background: bgApp, color: textMain, borderRadius: '32px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', border: `1px solid ${borderColor}`, position: 'relative', boxSizing: 'border-box' }}>
       
       {/* Header */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', paddingBottom: '14px', borderBottom: `1px solid ${borderColor}` }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: `1px solid ${borderColor}` }}>
         <div>
-          <h1 style={{ color: textMain, margin: '0 0 2px 0', fontSize: '20px', fontWeight: '800', letterSpacing: '-0.5px' }}>{t.appName} 💼</h1>
+          <h1 style={{ color: textMain, margin: '0 0 2px 0', fontSize: '18px', fontWeight: '800', letterSpacing: '-0.5px' }}>{t.appName} 💼</h1>
           <span style={{ color: textMuted, fontSize: '11px', fontWeight: '500' }}>{t.tagline}</span>
         </div>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          <select 
-            value={lang} 
-            onChange={(e) => setLang(e.target.value)}
-            style={{ padding: '6px 8px', borderRadius: '8px', border: `1px solid ${borderColor}`, fontSize: '11px', fontWeight: 'bold', background: inputBg, color: textMain, outline: 'none' }}
+          {/* כפתור החלפת תאורת לילה / יום */}
+          <button 
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            style={{ padding: '6px 10px', borderRadius: '10px', border: `1px solid ${borderColor}`, fontSize: '12px', background: cardBg, color: textMain, cursor: 'pointer', fontWeight: 'bold' }}
+            title={theme === 'dark' ? 'עבור למצב יום' : 'עבור למצב לילה'}
           >
-            <option value="en">English</option>
-            <option value="he">עברית</option>
-            <option value="ar">العربية</option>
-            <option value="ru">Русский</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
-            <option value="it">Italiano</option>
-            <option value="zh">中文</option>
-            <option value="ja">日本語</option>
-            <option value="pt">Português</option>
-          </select>
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
 
           <input 
             type="month" 
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{ padding: '6px 8px', borderRadius: '8px', border: `1px solid ${borderColor}`, fontSize: '11px', fontWeight: 'bold', background: inputBg, color: textMain, outline: 'none' }}
+            style={{ padding: '6px 8px', borderRadius: '10px', border: `1px solid ${borderColor}`, fontSize: '11px', fontWeight: 'bold', background: cardBg, color: textMain, outline: 'none' }}
           />
         </div>
       </header>
@@ -675,43 +281,59 @@ export default function App() {
       {/* 1. Dashboard Tab */}
       {activeTab === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ background: theme === 'dark' ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' : 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)', border: `1px solid ${borderColor}`, padding: '20px', borderRadius: '20px', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
-            <span style={{ display: 'block', fontSize: '12px', color: textMuted, marginBottom: '4px', fontWeight: '600' }}>{t.netBalance}</span>
-            <span style={{ fontSize: '32px', fontWeight: '900', color: netBalance >= 0 ? (theme === 'dark' ? '#38bdf8' : '#0284c7') : '#dc2626', letterSpacing: '-1px' }}>
+          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, padding: '20px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+            <span style={{ display: 'block', fontSize: '12px', color: textMuted, marginBottom: '6px', fontWeight: '600' }}>{t.netBalance}</span>
+            <span style={{ fontSize: '30px', fontWeight: '900', color: netBalance >= 0 ? '#10b981' : '#ef4444', letterSpacing: '-1px' }}>
               ₪{netBalance.toLocaleString()}
             </span>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '16px', paddingTop: '14px', borderTop: `1px solid ${borderColor}` }}>
               <div>
                 <span style={{ fontSize: '11px', color: textMuted, display: 'block' }}>{t.income}</span>
-                <span style={{ fontSize: '15px', fontWeight: '700', color: '#059669' }}>+₪{totalIncome.toLocaleString()}</span>
+                <span style={{ fontSize: '15px', fontWeight: '700', color: '#10b981' }}>+₪{totalIncome.toLocaleString()}</span>
               </div>
               <div>
                 <span style={{ fontSize: '11px', color: textMuted, display: 'block' }}>{t.expenses}</span>
-                <span style={{ fontSize: '15px', fontWeight: '700', color: '#dc2626' }}>-₪{totalExpense.toLocaleString()}</span>
+                <span style={{ fontSize: '15px', fontWeight: '700', color: '#ef4444' }}>-₪{totalExpense.toLocaleString()}</span>
               </div>
             </div>
           </div>
 
-          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, padding: '16px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <span style={{ fontSize: '11px', color: theme === 'dark' ? '#38bdf8' : '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>💡 {t.safeSpend}</span>
-              <span style={{ fontSize: '18px', fontWeight: '800', color: textMain }}>₪{dailySafeSpend.toLocaleString()} <span style={{ fontSize: '11px', color: textMuted, fontWeight: 'normal' }}>/ day</span></span>
+              <span style={{ fontSize: '11px', color: '#3b82f6', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>💡 {t.safeSpend}</span>
+              <span style={{ fontSize: '18px', fontWeight: '800', color: textMain }}>₪{dailySafeSpend.toLocaleString()} <span style={{ fontSize: '11px', color: textMuted, fontWeight: 'normal' }}>/ ליום</span></span>
             </div>
             <div style={{ textAlign: isRTL ? 'left' : 'right' }}>
               <span style={{ fontSize: '10px', color: textMuted, display: 'block' }}>{t.daysLeft}</span>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: textMain }}>{daysRemaining}</span>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', color: textMain }}>{daysRemaining} ימים</span>
             </div>
           </div>
 
-          <div style={{ background: theme === 'dark' ? 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)' : 'linear-gradient(135deg, #2563eb 100%, #1d4ed8 0%)', padding: '16px 18px', borderRadius: '16px', color: '#ffffff' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '13px' }}>🎯 {savingsGoalName}</span>
-              <span style={{ fontSize: '13px', fontWeight: '800' }}>₪{savingsGoalAmount.toLocaleString()}</span>
-            </div>
-            <div style={{ fontSize: '11px', color: '#bfdbfe', marginTop: '6px', paddingTop: '6px', borderTop: '1px solid rgba(255,255,255,0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>📅 {t.targetDate}:</span>
-              <strong style={{ color: '#ffffff' }}>{targetDateString}</strong>
-            </div>
+          {/* גרף עוגה ופילוח הוצאות */}
+          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, padding: '16px', borderRadius: '20px' }}>
+            <h3 style={{ fontSize: '13px', margin: '0 0 12px 0', color: textMain, fontWeight: '700' }}>{t.categoryBreakdown}</h3>
+            {expensesByCategory.length === 0 ? (
+              <p style={{ textAlign: 'center', color: textMuted, fontSize: '11px', padding: '15px' }}>אין הוצאות רשומות לחודש זה</p>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{ width: '110px', height: '110px', flexShrink: '0' }}>
+                  <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                    {svgSlices}
+                  </svg>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, fontSize: '11px' }}>
+                  {expensesByCategory.map(cat => (
+                    <div key={cat.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: cat.color }}></span>
+                        <span style={{ color: textMuted }}>{cat.name}</span>
+                      </span>
+                      <strong style={{ color: textMain }}>₪{cat.total}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -719,37 +341,29 @@ export default function App() {
       {/* Transactions Tab */}
       {activeTab === 'transactions' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input 
-              type="text" 
-              placeholder={t.searchPlaceholder} 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ flex: 1, padding: '10px 14px', borderRadius: '12px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }}
-            />
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
-            >
-              + {t.newTransaction}
-            </button>
-          </div>
+          <input 
+            type="text" 
+            placeholder={t.searchPlaceholder} 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ width: '100%', padding: '10px 14px', borderRadius: '14px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px', boxSizing: 'border-box' }}
+          />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '450px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '500px', overflowY: 'auto' }}>
             {filteredTransactions.length === 0 ? (
-              <p style={{ textAlign: 'center', color: textMuted, fontSize: '12px', padding: '20px' }}>{t.noTransactions}</p>
+              <p style={{ textAlign: 'center', color: textMuted, fontSize: '12px', padding: '30px' }}>{t.noTransactions}</p>
             ) : (
               filteredTransactions.map(tr => (
-                <div key={tr.id} style={{ background: cardBg, padding: '12px 14px', borderRadius: '12px', border: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div key={tr.id} style={{ background: cardBg, padding: '12px 14px', borderRadius: '16px', border: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <span style={{ display: 'block', fontWeight: '700', fontSize: '13px', color: textMain }}>{tr.title}</span>
                     <span style={{ fontSize: '10px', color: textMuted }}>{tr.category} {tr.is_recurring && `• ${t.recurringBadge}`}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontWeight: '800', fontSize: '14px', color: Number(tr.amount) > 0 ? '#059669' : '#dc2626' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontWeight: '800', fontSize: '14px', color: Number(tr.amount) > 0 ? '#10b981' : '#ef4444' }}>
                       {Number(tr.amount) > 0 ? `+₪${tr.amount}` : `-₪{Math.abs(tr.amount)}`}
                     </span>
-                    <button onClick={() => deleteTransaction(tr.id)} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                    <button onClick={() => deleteTransaction(tr.id)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '14px' }}>✕</button>
                   </div>
                 </div>
               ))
@@ -761,19 +375,27 @@ export default function App() {
       {/* Budgets Tab */}
       {activeTab === 'budgets' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', margin: '0 0 12px 0', color: textMain }}>{t.categoryBreakdown}</h3>
-            {expensesByCategory.map(cat => (
-              <div key={cat.name} style={{ marginBottom: '10px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
-                  <span>{cat.icon} {cat.name}</span>
-                  <span style={{ fontWeight: 'bold' }}>₪{cat.total} / ₪{cat.limit}</span>
+          <div style={{ background: cardBg, padding: '16px', borderRadius: '20px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ fontSize: '13px', margin: '0 0 14px 0', color: textMain, fontWeight: '700' }}>מעקב תקציב קטגוריות</h3>
+            {Object.keys(categories).map(catName => {
+              const catData = categories[catName]
+              const totalSpent = monthTransactions
+                .filter(tr => tr.category === catName && Number(tr.amount) < 0)
+                .reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
+              const percent = Math.min(Math.round((totalSpent / catData.limit) * 100), 100)
+
+              return (
+                <div key={catName} style={{ marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
+                    <span>{catData.icon} {catName}</span>
+                    <span style={{ fontWeight: 'bold' }}>₪{totalSpent} / ₪{catData.limit}</span>
+                  </div>
+                  <div style={{ background: inputBg, height: '6px', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ background: catData.color, width: `${percent}%`, height: '100%', transition: 'width 0.3s ease' }}></div>
+                  </div>
                 </div>
-                <div style={{ background: inputBg, height: '6px', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ background: cat.color, width: `${Math.min(Math.round((cat.total / cat.limit) * 100), 100)}%`, height: '100%' }}></div>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
@@ -781,70 +403,89 @@ export default function App() {
       {/* Tools Tab */}
       {activeTab === 'tools' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', margin: '0 0 10px 0', color: textMain }}>{t.subscriptionRadar}</h3>
-            <p style={{ fontSize: '11px', color: textMuted }}>{t.yearlyTotal} <strong>₪{totalRecurringYearly.toLocaleString()}</strong></p>
-            <button onClick={exportToCSV} style={{ width: '100%', marginTop: '10px', background: '#059669', color: '#fff', border: 'none', padding: '10px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>
+          <div style={{ background: cardBg, padding: '16px', borderRadius: '20px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ fontSize: '13px', margin: '0 0 10px 0', color: textMain, fontWeight: '700' }}>{t.subscriptionRadar}</h3>
+            <p style={{ fontSize: '11px', color: textMuted, marginBottom: '12px' }}>{t.yearlyTotal} <strong style={{ color: textMain }}>₪{totalRecurringYearly.toLocaleString()}</strong></p>
+            <button onClick={exportToCSV} style={{ width: '100%', background: '#10b981', color: '#fff', border: 'none', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>
               {t.exportCSV}
             </button>
           </div>
         </div>
       )}
 
-      {/* Fixed Bottom Navigation */}
-      <nav style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '480px', background: cardBg, borderTop: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-around', padding: '10px 0', boxSizing: 'border-box', zIndex: 1000 }}>
+      {/* Fixed Bottom Navigation with Floating Action Button (FAB) in Center */}
+      <nav style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '480px', background: cardBg, borderTop: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '8px 0 16px 0', boxSizing: 'border-box', zIndex: 1000 }}>
         <button 
           onClick={() => setActiveTab('dashboard')} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'dashboard' ? '#2563eb' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
+          style={{ background: 'none', border: 'none', color: activeTab === 'dashboard' ? '#3b82f6' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}
         >
-          <span style={{ fontSize: '16px' }}>📊</span>
+          <span style={{ fontSize: '18px' }}>📊</span>
           <span>{t.dashboard}</span>
         </button>
+
         <button 
           onClick={() => setActiveTab('transactions')} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'transactions' ? '#2563eb' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
+          style={{ background: 'none', border: 'none', color: activeTab === 'transactions' ? '#3b82f6' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}
         >
-          <span style={{ fontSize: '16px' }}>💳</span>
+          <span style={{ fontSize: '18px' }}>💳</span>
           <span>{t.transactions}</span>
         </button>
+
+        {/* Floating Plus Button (FAB) */}
+        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', position: 'relative' }}>
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            style={{ position: 'absolute', top: '-22px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff', border: 'none', width: '50px', height: '50px', borderRadius: '50%', fontSize: '24px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s' }}
+            title={t.newTransaction}
+          >
+            +
+          </button>
+        </div>
+
         <button 
           onClick={() => setActiveTab('budgets')} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'budgets' ? '#2563eb' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
+          style={{ background: 'none', border: 'none', color: activeTab === 'budgets' ? '#3b82f6' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}
         >
-          <span style={{ fontSize: '16px' }}>🎯</span>
+          <span style={{ fontSize: '18px' }}>🎯</span>
           <span>{t.budgets}</span>
         </button>
+
         <button 
           onClick={() => setActiveTab('tools')} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'tools' ? '#2563eb' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
+          style={{ background: 'none', border: 'none', color: activeTab === 'tools' ? '#3b82f6' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}
         >
-          <span style={{ fontSize: '16px' }}>🛠️</span>
+          <span style={{ fontSize: '18px' }}>🛠️</span>
           <span>{t.tools}</span>
         </button>
       </nav>
 
       {/* New Transaction Modal */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
-          <div style={{ background: cardBg, padding: '20px', borderRadius: '20px', width: '90%', maxWidth: '360px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ margin: '0 0 14px 0', fontSize: '16px', color: textMain }}>{t.newTransaction}</h3>
-            <form onSubmit={addTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="button" onClick={() => setType('expense')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: type === 'expense' ? '#dc2626' : inputBg, color: type === 'expense' ? '#fff' : textMain, fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>{t.expenseType}</button>
-                <button type="button" onClick={() => setType('income')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: type === 'income' ? '#059669' : inputBg, color: type === 'income' ? '#fff' : textMain, fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>{t.incomeType}</button>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
+          <div style={{ background: cardBg, padding: '22px', borderRadius: '24px', width: '90%', maxWidth: '360px', border: `1px solid ${borderColor}`, boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: textMain, fontWeight: '800' }}>{t.newTransaction}</h3>
+            <form onSubmit={addTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" onClick={() => setType('expense')} style={{ flex: 1, padding: '10px', borderRadius: '12px', border: 'none', background: type === 'expense' ? '#ef4444' : inputBg, color: type === 'expense' ? '#fff' : textMain, fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.expenseType}</button>
+                <button type="button" onClick={() => setType('income')} style={{ flex: 1, padding: '10px', borderRadius: '12px', border: 'none', background: type === 'income' ? '#10b981' : inputBg, color: type === 'income' ? '#fff' : textMain, fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.incomeType}</button>
               </div>
-              <input type="text" placeholder={t.titlePlaceholder} value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }} />
-              <input type="number" placeholder={t.amountLabel} value={amount} onChange={(e) => setAmount(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }} />
+              <input type="text" placeholder={t.titlePlaceholder} value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '12px', borderRadius: '12px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }} />
+              <input type="number" placeholder={t.amountLabel} value={amount} onChange={(e) => setAmount(e.target.value)} style={{ padding: '12px', borderRadius: '12px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }} />
               
               {type === 'expense' && (
-                <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }}>
+                <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ padding: '12px', borderRadius: '12px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }}>
                   {Object.keys(categories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
                 </select>
               )}
 
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: textMuted }}>
+                <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} id="recCheck" />
+                <label htmlFor="recCheck" style={{ cursor: 'pointer' }}>{t.recurringCheckbox}</label>
+              </div>
+
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button type="submit" style={{ flex: 1, background: '#2563eb', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.saveButton}</button>
-                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, background: 'transparent', color: textMuted, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+                <button type="submit" style={{ flex: 1, background: '#3b82f6', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.saveButton}</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, background: 'transparent', color: textMuted, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>ביטול</button>
               </div>
             </form>
           </div>
