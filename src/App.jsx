@@ -1,796 +1,266 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nest Budget & Savings</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Hebrew:wght@400;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-main: #0b0f19;
-            --surface-card: #151c2c;
-            --surface-card-hover: #1c263b;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --primary-emerald: #10b981;
-            --primary-glow: rgba(16, 185, 129, 0.15);
-            --accent-indigo: #6366f1;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --radius-card: 20px;
-            --radius-pill: 9999px;
-            --shadow-float: 0 12px 32px rgba(0, 0, 0, 0.35);
-        }
+import React, { useState } from 'react';
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', 'Noto Sans Hebrew', 'Noto Sans Arabic', sans-serif;
-            transition: background-color 0.2s, border-color 0.2s;
-        }
+// === הגדרות שערי חליפין (יחסי לדולר) ===
+const exchangeRates = {
+  USD: 1.0, ILS: 3.70, EUR: 0.92, GBP: 0.78, CAD: 1.36, 
+  AUD: 1.52, JPY: 155.0, CNY: 7.23, RUB: 90.0, BRL: 5.40, CHF: 0.90
+};
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            padding-bottom: 110px;
-            min-height: 100vh;
-        }
+// === מערכת תרגומים (11 שפות) ===
+const translations = {
+  en: {
+    appTitle: "Nest Budget",
+    totalSavings: "Total Savings Goal",
+    monthlyDebitTotal: "Total Standing Orders",
+    couplePlan: "Couple Account Active",
+    autoMonthly: "Auto-deducted monthly",
+    addGoalTitle: "Define Savings & Standing Order",
+    goalNameLabel: "Savings Goal Name",
+    targetAmountLabel: "Target Amount",
+    targetDateLabel: "Target Date",
+    enableStandingOrder: "Enable Standing Order (Direct Debit)",
+    monthlyDebitLabel: "Monthly Amount",
+    debitEndDateLabel: "Standing Order End Date",
+    saveGoalBtn: "Create Savings Plan",
+    tabDashboard: "Dashboard",
+    tabGoals: "Savings",
+    tabDebits: "Standing Orders",
+    noDebit: "Manual Savings"
+  },
+  he: {
+    appTitle: "Nest Budget (תקציב זוגי)",
+    totalSavings: "סה״כ יעד חיסכון",
+    monthlyDebitTotal: "סה״כ הוראות קבע",
+    couplePlan: "חשבון זוגי מחובר",
+    autoMonthly: "יורד אוטומטית כל חודש",
+    addGoalTitle: "הגדרת חיסכון והוראת קבע",
+    goalNameLabel: "שם החיסכון",
+    targetAmountLabel: "סכום יעד",
+    targetDateLabel: "תאריך יעד",
+    enableStandingOrder: "הפעל הוראת קבע לחיסכון זה",
+    monthlyDebitLabel: "סכום הוראת קבע חודשי",
+    debitEndDateLabel: "תאריך גמירת הוראת קבע",
+    saveGoalBtn: "הקם תוכנית חיסכון",
+    tabDashboard: "סקירה",
+    tabGoals: "חסכונות",
+    tabDebits: "הוראות קבע",
+    noDebit: "חיסכון ידני"
+  },
+  ar: {
+    appTitle: "ميزانية العش",
+    totalSavings: "إجمالي هدف التوفير",
+    monthlyDebitTotal: "إجمالي الأوامر المستديمة",
+    couplePlan: "حساب زوجي نشط",
+    autoMonthly: "خصم تلقائي",
+    addGoalTitle: "تحديد التوفير والأمر المستديم",
+    goalNameLabel: "اسم الهدف",
+    targetAmountLabel: "المبلغ المستهدف",
+    targetDateLabel: "تاريخ الهدف",
+    enableStandingOrder: "تفعيل الأمر المستديم",
+    monthlyDebitLabel: "المبلغ الشهري",
+    debitEndDateLabel: "تاريخ انتهاء الأمر المستديم",
+    saveGoalBtn: "إنشاء الخطة",
+    tabDashboard: "الرئيسية",
+    tabGoals: "المدخرات",
+    tabDebits: "الالتزامات",
+    noDebit: "توفير يدوي"
+  },
+  es: { appTitle: "Nest Budget", totalSavings: "Meta Total", monthlyDebitTotal: "Débitos Totales", couplePlan: "Cuenta Pareja", autoMonthly: "Deducción auto", addGoalTitle: "Definir Meta", goalNameLabel: "Nombre", targetAmountLabel: "Monto", targetDateLabel: "Fecha", enableStandingOrder: "Activar Débito Directo", monthlyDebitLabel: "Monto Mensual", debitEndDateLabel: "Fin del Débito", saveGoalBtn: "Crear Plan", tabDashboard: "Panel", tabGoals: "Ahorros", tabDebits: "Débitos", noDebit: "Manual" },
+  fr: { appTitle: "Nest Budget", totalSavings: "Objectif Total", monthlyDebitTotal: "Prélèvements Totaux", couplePlan: "Compte Couple", autoMonthly: "Déduction auto", addGoalTitle: "Définir Objectif", goalNameLabel: "Nom", targetAmountLabel: "Montant", targetDateLabel: "Date", enableStandingOrder: "Activer Prélèvement", monthlyDebitLabel: "Montant Mensuel", debitEndDateLabel: "Fin du Prélèvement", saveGoalBtn: "Créer Plan", tabDashboard: "Tableau", tabGoals: "Épargnes", tabDebits: "Prélèvements", noDebit: "Manuel" },
+  de: { appTitle: "Nest Budget", totalSavings: "Gesamtziel", monthlyDebitTotal: "Gesamte Daueraufträge", couplePlan: "Paarkonto", autoMonthly: "Auto-Abzug", addGoalTitle: "Ziel Definieren", goalNameLabel: "Name", targetAmountLabel: "Betrag", targetDateLabel: "Datum", enableStandingOrder: "Dauerauftrag Aktivieren", monthlyDebitLabel: "Monatlicher Betrag", debitEndDateLabel: "Enddatum Dauerauftrag", saveGoalBtn: "Plan Erstellen", tabDashboard: "Übersicht", tabGoals: "Sparen", tabDebits: "Daueraufträge", noDebit: "Manuell" },
+  it: { appTitle: "Nest Budget", totalSavings: "Obiettivo Totale", monthlyDebitTotal: "Addebiti Totali", couplePlan: "Conto Coppia", autoMonthly: "Deduzione auto", addGoalTitle: "Definisci Obiettivo", goalNameLabel: "Nome", targetAmountLabel: "Importo", targetDateLabel: "Data", enableStandingOrder: "Attiva Addebito", monthlyDebitLabel: "Importo Mensile", debitEndDateLabel: "Fine Addebito", saveGoalBtn: "Crea Piano", tabDashboard: "Dashboard", tabGoals: "Risparmi", tabDebits: "Addebiti", noDebit: "Manuale" },
+  pt: { appTitle: "Nest Budget", totalSavings: "Meta Total", monthlyDebitTotal: "Débitos Totais", couplePlan: "Conta Casal", autoMonthly: "Dedução auto", addGoalTitle: "Definir Meta", goalNameLabel: "Nome", targetAmountLabel: "Valor", targetDateLabel: "Data", enableStandingOrder: "Ativar Débito Direto", monthlyDebitLabel: "Valor Mensal", debitEndDateLabel: "Fim do Débito", saveGoalBtn: "Criar Plano", tabDashboard: "Painel", tabGoals: "Poupanças", tabDebits: "Débitos", noDebit: "Manual" },
+  ru: { appTitle: "Nest Budget", totalSavings: "Общая цель", monthlyDebitTotal: "Всего автоплатежей", couplePlan: "Счет пары", autoMonthly: "Автосписание", addGoalTitle: "Добавить цель", goalNameLabel: "Название", targetAmountLabel: "Сумма", targetDateLabel: "Дата", enableStandingOrder: "Включить автоплатеж", monthlyDebitLabel: "Сумма в месяц", debitEndDateLabel: "Конец автоплатежа", saveGoalBtn: "Создать план", tabDashboard: "Обзор", tabGoals: "Накопления", tabDebits: "Платежи", noDebit: "Вручную" },
+  zh: { appTitle: "Nest Budget", totalSavings: "总目标", monthlyDebitTotal: "总定额扣款", couplePlan: "情侣账户", autoMonthly: "自动扣款", addGoalTitle: "设定目标", goalNameLabel: "名称", targetAmountLabel: "金额", targetDateLabel: "日期", enableStandingOrder: "启用定额扣款", monthlyDebitLabel: "每月金额", debitEndDateLabel: "扣款结束日期", saveGoalBtn: "创建计划", tabDashboard: "主页", tabGoals: "储蓄", tabDebits: "扣款", noDebit: "手动" },
+  ja: { appTitle: "Nest Budget", totalSavings: "総合目標", monthlyDebitTotal: "総口座振替", couplePlan: "カップル口座", autoMonthly: "自動引き落とし", addGoalTitle: "目標設定", goalNameLabel: "名前", targetAmountLabel: "金額", targetDateLabel: "日付", enableStandingOrder: "口座振替を有効化", monthlyDebitLabel: "月額", debitEndDateLabel: "振替終了日", saveGoalBtn: "プラン作成", tabDashboard: "ダッシュボード", tabGoals: "貯金", tabDebits: "振替", noDebit: "手動" }
+};
 
-        /* Top Bar */
-        header {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 24px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+export default function App() {
+  const [lang, setLang] = useState('en');
+  const [currency, setCurrency] = useState('USD');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [goals, setGoals] = useState([]);
+  
+  const [formData, setFormData] = useState({
+    name: '', targetAmount: '', targetDate: '',
+    hasStandingOrder: false, monthlyDebit: '', debitEndDate: ''
+  });
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+  const t = translations[lang] || translations.en;
+  const isRtl = lang === 'he' || lang === 'ar';
 
-        .brand-icon {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--primary-emerald), var(--accent-indigo));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
-        }
+  const formatCurrency = (amountUSD) => {
+    const converted = amountUSD * (exchangeRates[currency] || 1);
+    return new Intl.NumberFormat(lang, { style: 'currency', currency }).format(converted);
+  };
 
-        .brand-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    return new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }).format(new Date(dateStr));
+  };
 
-        .controls-group {
-            display: flex;
-            gap: 10px;
-        }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const rate = exchangeRates[currency] || 1;
+    const newGoal = {
+      id: Date.now(),
+      name: formData.name,
+      targetAmountUSD: parseFloat(formData.targetAmount) / rate,
+      targetDate: formData.targetDate,
+      hasStandingOrder: formData.hasStandingOrder,
+      monthlyDebitUSD: formData.hasStandingOrder ? parseFloat(formData.monthlyDebit || 0) / rate : 0,
+      debitEndDate: formData.debitEndDate
+    };
+    
+    setGoals([...goals, newGoal]);
+    setFormData({ name: '', targetAmount: '', targetDate: '', hasStandingOrder: false, monthlyDebit: '', debitEndDate: '' });
+  };
 
-        select {
-            background: var(--surface-card);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 0.875rem;
-            outline: none;
-            cursor: pointer;
-        }
+  const totalTargetUSD = goals.reduce((sum, g) => sum + g.targetAmountUSD, 0);
+  const totalDebitUSD = goals.reduce((sum, g) => sum + g.monthlyDebitUSD, 0);
 
-        /* Container Layout */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+  return (
+    <>
+      <style>{`
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+        body { margin: 0; background: #0b0f19; color: #f8fafc; padding-bottom: 100px; }
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .square-card { background: #151c2c; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px; position: relative; }
+        .floating-nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: rgba(21,28,44,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 999px; display: flex; gap: 8px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        html[dir="rtl"] .floating-nav { transform: translateX(50%); }
+        .nav-btn { background: transparent; color: #94a3b8; border: none; padding: 10px 20px; border-radius: 999px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .nav-btn.active { background: #10b981; color: #051610; }
+        input, select { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 12px; border-radius: 12px; font-size: 1rem; width: 100%; outline: none; }
+        input:focus, select:focus { border-color: #10b981; }
+        .badge { background: rgba(16,185,129,0.15); color: #10b981; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; display: inline-block; }
+      `}</style>
 
-        /* Floating Nav Bar */
-        .floating-nav-container {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-        }
-
-        .floating-nav {
-            background: rgba(21, 28, 44, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-color);
-            padding: 6px;
-            border-radius: var(--radius-pill);
-            display: flex;
-            gap: 6px;
-            box-shadow: var(--shadow-float);
-        }
-
-        .nav-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 10px 22px;
-            border-radius: var(--radius-pill);
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-
-        .nav-btn.active {
-            background: var(--primary-emerald);
-            color: #000;
-            box-shadow: 0 4px 14px var(--primary-glow);
-        }
-
-        /* Metric Grid Cards (Squared/Clean Layout) */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-
-        .square-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-card);
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card-label {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .card-value {
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-        }
-
-        .badge {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 4px 10px;
-            background: var(--primary-glow);
-            color: var(--primary-emerald);
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        /* Main Form Section */
-        .form-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-card);
-            padding: 28px;
-            margin-bottom: 32px;
-        }
-
-        .form-title {
-            font-size: 1.15rem;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        input, select {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: var(--primary-emerald);
-        }
-
-        .checkbox-group {
-            flex-direction: row;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .checkbox-group input {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary-emerald);
-            cursor: pointer;
-        }
-
-        .btn-submit {
-            background: var(--primary-emerald);
-            color: #051610;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-top: 16px;
-            width: 100%;
-        }
-
-        /* Goals Grid */
-        .goals-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        .goal-item-card {
-            background: var(--surface-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-card);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .goal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 16px;
-        }
-
-        .progress-bar-bg {
-            background: rgba(255,255,255,0.05);
-            height: 8px;
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 12px 0;
-        }
-
-        .progress-bar-fill {
-            background: var(--primary-emerald);
-            height: 100%;
-            width: 0%;
-            transition: width 0.4s ease;
-        }
-
-        .details-list {
-            font-size: 0.825rem;
-            color: var(--text-muted);
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-top: 12px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 12px;
-        }
-
-        .details-item {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* Dynamic RTL Adjustments */
-        html[dir="rtl"] .floating-nav-container {
-            transform: translateX(50%);
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <div class="brand">
-            <div class="brand-icon">N</div>
-            <div class="brand-title">Nest Budget</div>
-        </div>
-
-        <div class="controls-group">
-            <select id="currencySelector" onchange="changeCurrency(this.value)">
-                <option value="USD">USD ($)</option>
-                <option value="ILS">ILS (₪)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-                <option value="CAD">CAD ($)</option>
-                <option value="AUD">AUD ($)</option>
-                <option value="JPY">JPY (¥)</option>
-                <option value="CNY">CNY (¥)</option>
-                <option value="RUB">RUB (₽)</option>
-                <option value="BRL">BRL (R$)</option>
-                <option value="CHF">CHF (CHF)</option>
+      <div dir={isRtl ? 'rtl' : 'ltr'} style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 20px' }}>
+        
+        {/* Header */}
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ background: 'linear-gradient(135deg, #10b981, #6366f1)', width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '20px' }}>N</div>
+            <h1 style={{ fontSize: '1.4rem', margin: 0 }}>{t.appTitle}</h1>
+          </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <select value={currency} onChange={(e) => setCurrency(e.target.value)} style={{ width: 'auto' }}>
+              {Object.keys(exchangeRates).map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-
-            <select id="languageSelector" onchange="changeLanguage(this.value)">
-                <option value="en" selected>English</option>
-                <option value="he">עברית</option>
-                <option value="ar">العربية</option>
-                <option value="es">Español</option>
-                <option value="fr">Français</option>
-                <option value="de">Deutsch</option>
-                <option value="it">Italiano</option>
-                <option value="pt">Português</option>
-                <option value="ru">Русский</option>
-                <option value="zh">中文</option>
-                <option value="ja">日本語</option>
+            <select value={lang} onChange={(e) => setLang(e.target.value)} style={{ width: 'auto' }}>
+              {Object.keys(translations).map(l => <option key={l} value={l}>{l.toUpperCase()}</option>)}
             </select>
-        </div>
-    </header>
+          </div>
+        </header>
 
-    <div class="container">
-        <!-- Overview Grid -->
-        <div class="metrics-grid">
-            <div class="square-card">
-                <div class="card-label" data-i18n="totalSavings">Total Savings Goal</div>
-                <div class="card-value" id="totalSavingsVal">$0.00</div>
-                <span class="badge" data-i18n="couplePlan">Couple Account Active</span>
+        {/* Dashboard Overview */}
+        {(activeTab === 'dashboard' || activeTab === 'all') && (
+          <div className="grid-cards" style={{ marginBottom: '32px' }}>
+            <div className="square-card">
+              <div style={{ color: '#94a3b8', marginBottom: '8px' }}>{t.totalSavings}</div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#f8fafc' }}>{formatCurrency(totalTargetUSD)}</div>
+              <div style={{ marginTop: '16px' }}><span className="badge">{t.couplePlan}</span></div>
             </div>
-            <div class="square-card">
-                <div class="card-label" data-i18n="monthlyDebitTotal">Total Standing Orders</div>
-                <div class="card-value" id="totalDebitVal">$0.00</div>
-                <span class="badge" data-i18n="autoMonthly">Auto-deducted monthly</span>
+            <div className="square-card">
+              <div style={{ color: '#94a3b8', marginBottom: '8px' }}>{t.monthlyDebitTotal}</div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#10b981' }}>{formatCurrency(totalDebitUSD)}</div>
+              <div style={{ marginTop: '16px' }}><span className="badge" style={{ background: 'rgba(99,102,241,0.15)', color: '#6366f1' }}>{t.autoMonthly}</span></div>
             </div>
-        </div>
+          </div>
+        )}
 
-        <!-- Form Section -->
-        <div class="form-card">
-            <h2 class="form-title" data-i18n="addGoalTitle">Define Savings Target & Standing Order</h2>
-            <form id="goalForm" onsubmit="handleFormSubmit(event)">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label data-i18n="goalNameLabel">Savings Goal Name</label>
-                        <input type="text" id="goalName" required placeholder="e.g. Home Downpayment">
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="targetAmountLabel">Target Amount</label>
-                        <input type="number" id="targetAmount" required min="1" step="any">
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="targetDateLabel">Savings Target Date</label>
-                        <input type="date" id="targetDate" required>
-                    </div>
+        {/* Form Section */}
+        <div className="square-card" style={{ marginBottom: '32px' }}>
+          <h2 style={{ marginTop: 0, fontSize: '1.2rem', marginBottom: '24px' }}>{t.addGoalTitle}</h2>
+          <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
+            
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#94a3b8', fontSize: '0.9rem' }}>{t.goalNameLabel}</label>
+              <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+            </div>
+            
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#94a3b8', fontSize: '0.9rem' }}>{t.targetAmountLabel}</label>
+              <input type="number" required min="1" step="any" value={formData.targetAmount} onChange={e => setFormData({...formData, targetAmount: e.target.value})} />
+            </div>
+            
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#94a3b8', fontSize: '0.9rem' }}>{t.targetDateLabel}</label>
+              <input type="date" required value={formData.targetDate} onChange={e => setFormData({...formData, targetDate: e.target.value})} />
+            </div>
 
-                    <div class="form-group full-width checkbox-group">
-                        <input type="checkbox" id="hasStandingOrder" onchange="toggleStandingOrderFields(this.checked)">
-                        <label for="hasStandingOrder" data-i18n="enableStandingOrder">Enable Direct Debit / Standing Order (הוראת קבע)</label>
-                    </div>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '12px', marginTop: '10px' }}>
+              <input type="checkbox" id="standingOrder" style={{ width: '20px', height: '20px', accentColor: '#10b981', cursor: 'pointer' }} checked={formData.hasStandingOrder} onChange={e => setFormData({...formData, hasStandingOrder: e.target.checked})} />
+              <label htmlFor="standingOrder" style={{ cursor: 'pointer', fontWeight: '500' }}>{t.enableStandingOrder}</label>
+            </div>
 
-                    <div class="form-group" id="debitAmountGroup" style="display: none;">
-                        <label data-i18n="monthlyDebitLabel">Monthly Standing Order Amount</label>
-                        <input type="number" id="monthlyDebitAmount" min="0" step="any">
-                    </div>
-                    <div class="form-group" id="debitEndGroup" style="display: none;">
-                        <label data-i18n="debitEndDateLabel">Standing Order End Date</label>
-                        <input type="date" id="debitEndDate">
-                    </div>
+            {formData.hasStandingOrder && (
+              <>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: '#94a3b8', fontSize: '0.9rem' }}>{t.monthlyDebitLabel}</label>
+                  <input type="number" required min="1" step="any" value={formData.monthlyDebit} onChange={e => setFormData({...formData, monthlyDebit: e.target.value})} />
                 </div>
-                <button type="submit" class="btn-submit" data-i18n="saveGoalBtn">Create Savings Plan</button>
-            </form>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: '#94a3b8', fontSize: '0.9rem' }}>{t.debitEndDateLabel}</label>
+                  <input type="date" required value={formData.debitEndDate} onChange={e => setFormData({...formData, debitEndDate: e.target.value})} />
+                </div>
+              </>
+            )}
+
+            <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+              <button type="submit" style={{ width: '100%', background: '#10b981', color: '#051610', padding: '16px', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}>
+                {t.saveGoalBtn}
+              </button>
+            </div>
+          </form>
         </div>
 
-        <!-- Goals Display Grid -->
-        <div class="goals-grid" id="goalsContainer"></div>
-    </div>
+        {/* Goals List */}
+        <div className="grid-cards">
+          {goals.map(goal => (
+            <div key={goal.id} className="square-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{goal.name}</h3>
+                <span className="badge" style={{ background: goal.hasStandingOrder ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.1)', color: goal.hasStandingOrder ? '#6366f1' : '#94a3b8' }}>
+                  {goal.hasStandingOrder ? t.tabDebits : t.noDebit}
+                </span>
+              </div>
+              
+              <div style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '20px' }}>
+                {formatCurrency(goal.targetAmountUSD)}
+              </div>
 
-    <!-- Floating Navigation Bar -->
-    <div class="floating-nav-container">
-        <nav class="floating-nav">
-            <button class="nav-btn active" data-i18n="tabOverview">Dashboard</button>
-            <button class="nav-btn" data-i18n="tabGoals">Savings Goals</button>
-            <button class="nav-btn" data-i18n="tabDebits">Standing Orders</button>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.9rem', color: '#94a3b8' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>{t.targetDateLabel}:</span>
+                  <strong style={{ color: '#f8fafc' }}>{formatDate(goal.targetDate)}</strong>
+                </div>
+                
+                {goal.hasStandingOrder && (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{t.monthlyDebitLabel}:</span>
+                      <strong style={{ color: '#10b981' }}>{formatCurrency(goal.monthlyDebitUSD)}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>{t.debitEndDateLabel}:</span>
+                      <strong style={{ color: '#f8fafc' }}>{formatDate(goal.debitEndDate)}</strong>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Floating Nav */}
+        <nav className="floating-nav">
+          <button className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>{t.tabDashboard}</button>
+          <button className={`nav-btn ${activeTab === 'goals' ? 'active' : ''}`} onClick={() => setActiveTab('goals')}>{t.tabGoals}</button>
+          <button className={`nav-btn ${activeTab === 'debits' ? 'active' : ''}`} onClick={() => setActiveTab('debits')}>{t.tabDebits}</button>
         </nav>
-    </div>
 
-    <script>
-        // Rates relative to USD base
-        const exchangeRates = {
-            USD: 1.0,
-            ILS: 3.70,
-            EUR: 0.92,
-            GBP: 0.78,
-            CAD: 1.36,
-            AUD: 1.52,
-            JPY: 155.0,
-            CNY: 7.23,
-            RUB: 90.0,
-            BRL: 5.40,
-            CHF: 0.90
-        };
-
-        const translations = {
-            en: {
-                totalSavings: "Total Savings Target",
-                monthlyDebitTotal: "Monthly Standing Orders",
-                couplePlan: "Couple Account Active",
-                autoMonthly: "Auto-deducted monthly",
-                addGoalTitle: "Define Savings Target & Standing Order",
-                goalNameLabel: "Goal Name",
-                targetAmountLabel: "Target Amount",
-                targetDateLabel: "Savings Target Date",
-                enableStandingOrder: "Enable Direct Debit / Standing Order",
-                monthlyDebitLabel: "Monthly Standing Order Amount",
-                debitEndDateLabel: "Standing Order End Date",
-                saveGoalBtn: "Create Savings Plan",
-                tabOverview: "Dashboard",
-                tabGoals: "Savings",
-                tabDebits: "Direct Debits",
-                targetDateShort: "Target Date",
-                debitEndShort: "Standing Order Ends",
-                monthlyShort: "Monthly Deposit",
-                noDebit: "Manual Savings"
-            },
-            he: {
-                totalSavings: "סה״כ יעד חיסכון",
-                monthlyDebitTotal: "סה״כ הוראות קבע חודשיות",
-                couplePlan: "חשבון זוגי פעיל",
-                autoMonthly: "ירד באופן אוטומטי",
-                addGoalTitle: "הגדרת יעד חיסכון והוראת קבע",
-                goalNameLabel: "שם החיסכון",
-                targetAmountLabel: "סכום היעד",
-                targetDateLabel: "תאריך יעד של החיסכון",
-                enableStandingOrder: "הפעלת הוראת קבע לחיסכון",
-                monthlyDebitLabel: "סכום הוראת הקבע החודשית",
-                debitEndDateLabel: "תאריך גמירת הוראת הקבע",
-                saveGoalBtn: "צור תוכנית חיסכון",
-                tabOverview: "דשבורד",
-                tabGoals: "חסכונות",
-                tabDebits: "הוראות קבע",
-                targetDateShort: "תאריך יעד",
-                debitEndShort: "סיום הוראת קבע",
-                monthlyShort: "הפקדה חודשית",
-                noDebit: "חיסכון ידני"
-            },
-            ar: {
-                totalSavings: "إجمالي هدف التوفير",
-                monthlyDebitTotal: "إجمالي الأوامر المستديمة",
-                couplePlan: "حساب زوجي نشط",
-                autoMonthly: "خصم شهري تلقائي",
-                addGoalTitle: "تحديد هدف التوفير والأمر المستديم",
-                goalNameLabel: "اسم الهدف",
-                targetAmountLabel: "المبلغ المستهدف",
-                targetDateLabel: "تاريخ الهدف",
-                enableStandingOrder: "تفعيل الأمر المستديم (الدفع الاقتطاعי)",
-                monthlyDebitLabel: "مبلغ الأمر المستديم الشهري",
-                debitEndDateLabel: "تاريخ انتهاء الأمر المستديم",
-                saveGoalBtn: "إنشاء خطة التوفير",
-                tabOverview: "لوحة التحكم",
-                tabGoals: "الأهداف",
-                tabDebits: "الأوامر المستديمة",
-                targetDateShort: "تاريخ الهدف",
-                debitEndShort: "انتهاء الأمر المستديم",
-                monthlyShort: "إيداع شهري",
-                noDebit: "توفير يدوي"
-            },
-            es: {
-                totalSavings: "Objetivo de Ahorro Total",
-                monthlyDebitTotal: "Órdenes Permanentes Mensuales",
-                couplePlan: "Cuenta en Pareja Activa",
-                autoMonthly: "Deducido mensualmente",
-                addGoalTitle: "Definir Objetivo y Orden Permanente",
-                goalNameLabel: "Nombre del Objetivo",
-                targetAmountLabel: "Monto Objetivo",
-                targetDateLabel: "Fecha Límite de Ahorro",
-                enableStandingOrder: "Activar Orden Permanente (Débito Directo)",
-                monthlyDebitLabel: "Monto Mensual de Orden Permanente",
-                debitEndDateLabel: "Fecha de Finalización de Orden",
-                saveGoalBtn: "Crear Plan de Ahorro",
-                tabOverview: "Panel",
-                tabGoals: "Metas",
-                tabDebits: "Débitos Directos",
-                targetDateShort: "Fecha Límite",
-                debitEndShort: "Fin de Orden",
-                monthlyShort: "Depósito Mensual",
-                noDebit: "Ahorro Manual"
-            },
-            fr: {
-                totalSavings: "Objectif d'Épargne Total",
-                monthlyDebitTotal: "Prélèvements Automatiques",
-                couplePlan: "Compte de Couple Actif",
-                autoMonthly: "Déduit mensuellement",
-                addGoalTitle: "Définir Objectif et Prélèvement",
-                goalNameLabel: "Nom de l'Objectif",
-                targetAmountLabel: "Montant Cible",
-                targetDateLabel: "Date Cible d'Épargne",
-                enableStandingOrder: "Activer Prélèvement Automatique",
-                monthlyDebitLabel: "Montant du Prélèvement Mensuel",
-                debitEndDateLabel: "Date de Fin du Prélèvement",
-                saveGoalBtn: "Créer un Plan d'Épargne",
-                tabOverview: "Aperçu",
-                tabGoals: "Objectifs",
-                tabDebits: "Prélèvements",
-                targetDateShort: "Date Cible",
-                debitEndShort: "Fin de Prélèvement",
-                monthlyShort: "Dépôt Mensuel",
-                noDebit: "Épargne Manuelle"
-            },
-            de: {
-                totalSavings: "Gesamtes Sparziel",
-                monthlyDebitTotal: "Monatliche Daueraufträge",
-                couplePlan: "Paarkonto Aktiv",
-                autoMonthly: "Monatlich abgebucht",
-                addGoalTitle: "Sparziel & Dauerauftrag Festlegen",
-                goalNameLabel: "Name des Sparziels",
-                targetAmountLabel: "Zielbetrag",
-                targetDateLabel: "Ziel-Datum",
-                enableStandingOrder: "Dauerauftrag (Lastschrift) aktivieren",
-                monthlyDebitLabel: "Monatlicher Dauerauftrag",
-                debitEndDateLabel: "Enddatum des Dauerauftrags",
-                saveGoalBtn: "Sparplan Erstellen",
-                tabOverview: "Übersicht",
-                tabGoals: "Ziele",
-                tabDebits: "Daueraufträge",
-                targetDateShort: "Zieldatum",
-                debitEndShort: "Ende Dauerauftrag",
-                monthlyShort: "Monatliche Rate",
-                noDebit: "Manuelles Sparen"
-            },
-            it: {
-                totalSavings: "Obiettivo di Risparmio Totale",
-                monthlyDebitTotal: "Ordini Permanenti Mensili",
-                couplePlan: "Conto di Coppia Attivo",
-                autoMonthly: "Addebito mensile",
-                addGoalTitle: "Definisci Obiettivo e Ordine Permanente",
-                goalNameLabel: "Nome Obiettivo",
-                targetAmountLabel: "Importo Target",
-                targetDateLabel: "Data Target Risparmio",
-                enableStandingOrder: "Attiva Addebito Diretto / Ordine Permanente",
-                monthlyDebitLabel: "Importo Mensile Addebito",
-                debitEndDateLabel: "Data Fine Addebito",
-                saveGoalBtn: "Crea Piano di Risparmio",
-                tabOverview: "Dashboard",
-                tabGoals: "Obiettivi",
-                tabDebits: "Addebiti",
-                targetDateShort: "Data Target",
-                debitEndShort: "Fine Addebito",
-                monthlyShort: "Deposito Mensile",
-                noDebit: "Risparmio Manuale"
-            },
-            pt: {
-                totalSavings: "Meta de Poupança Total",
-                monthlyDebitTotal: "Débitos Diretos Mensais",
-                couplePlan: "Conta Conjunta Ativa",
-                autoMonthly: "Deduzido mensalmente",
-                addGoalTitle: "Definir Meta e Débito Direto",
-                goalNameLabel: "Nome da Meta",
-                targetAmountLabel: "Valor Meta",
-                targetDateLabel: "Data Limite da Meta",
-                enableStandingOrder: "Ativar Débito Direto / Ordem Permanente",
-                monthlyDebitLabel: "Valor Mensal do Débito",
-                debitEndDateLabel: "Data Término do Débito",
-                saveGoalBtn: "Criar Plano de Poupança",
-                tabOverview: "Painel",
-                tabGoals: "Metas",
-                tabDebits: "Débitos",
-                targetDateShort: "Data Limite",
-                debitEndShort: "Fim do Débito",
-                monthlyShort: "Depósito Mensal",
-                noDebit: "Poupança Manual"
-            },
-            ru: {
-                totalSavings: "Общая Цель Накоплений",
-                monthlyDebitTotal: "Ежемесячные Автоплатежи",
-                couplePlan: "Совместный Счет Активен",
-                autoMonthly: "Списывается ежемесячно",
-                addGoalTitle: "Настроить Накопления и Автоплатеж",
-                goalNameLabel: "Название Цели",
-                targetAmountLabel: "Целевая Сумма",
-                targetDateLabel: "Дата Окончания Накопления",
-                enableStandingOrder: "Включить Автоплатеж (הוראת קבע)",
-                monthlyDebitLabel: "Сумма Ежемесячного Платежа",
-                debitEndDateLabel: "Дата Окончания Автоплатежа",
-                saveGoalBtn: "Создать План Накоплений",
-                tabOverview: "Обзор",
-                tabGoals: "Цели",
-                tabDebits: "Автоплатежи",
-                targetDateShort: "Срок Цели",
-                debitEndShort: "Конец Автоплатежа",
-                monthlyShort: "Взнос в Месяц",
-                noDebit: "Ручные Взносы"
-            },
-            zh: {
-                totalSavings: "总储蓄目标",
-                monthlyDebitTotal: "每月自动扣款总额",
-                couplePlan: "情侣/夫妻共同账户已激活",
-                autoMonthly: "每月自动扣除",
-                addGoalTitle: "设定储蓄目标与定额扣款",
-                goalNameLabel: "目标名称",
-                targetAmountLabel: "目标金额",
-                targetDateLabel: "储蓄截止日期",
-                enableStandingOrder: "开启定期自动扣款 (Direct Debit)",
-                monthlyDebitLabel: "每月扣款金额",
-                debitEndDateLabel: "自动扣款结束日期",
-                saveGoalBtn: "创建储蓄计划",
-                tabOverview: "仪表盘",
-                tabGoals: "储蓄目标",
-                tabDebits: "自动扣款",
-                targetDateShort: "目标日期",
-                debitEndShort: "扣款结束",
-                monthlyShort: "每月存入",
-                noDebit: "手动储蓄"
-            },
-            ja: {
-                totalSavings: "総貯蓄目標額",
-                monthlyDebitTotal: "毎月の口座振替合計",
-                couplePlan: "カップル口座アクティブ",
-                autoMonthly: "毎月自動引き落とし",
-                addGoalTitle: "貯蓄目標と自動振替の設定",
-                goalNameLabel: "目標名",
-                targetAmountLabel: "目標金額",
-                targetDateLabel: "貯蓄目標期限",
-                enableStandingOrder: "自動口座振替を有効化",
-                monthlyDebitLabel: "毎月の振替金額",
-                debitEndDateLabel: "口座振替終了日",
-                saveGoalBtn: "貯蓄プランを作成",
-                tabOverview: "ダッシュボード",
-                tabGoals: "貯蓄目標",
-                tabDebits: "口座振替",
-                targetDateShort: "目標日",
-                debitEndShort: "振替終了日",
-                monthlyShort: "毎月の積立",
-                noDebit: "手動貯蓄"
-            }
-        };
-
-        let currentLang = 'en';
-        let currentCurrency = 'USD';
-        let goals = [];
-
-        function changeLanguage(lang) {
-            currentLang = lang;
-            const isRtl = lang === 'he' || lang === 'ar';
-            document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
-            document.documentElement.lang = lang;
-
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                if (translations[lang] && translations[lang][key]) {
-                    element.textContent = translations[lang][key];
-                }
-            });
-
-            renderGoals();
-            updateMetrics();
-        }
-
-        function changeCurrency(currency) {
-            currentCurrency = currency;
-            renderGoals();
-            updateMetrics();
-        }
-
-        function formatCurrency(valInUSD) {
-            const convertedVal = valInUSD * exchangeRates[currentCurrency];
-            return new Intl.NumberFormat(currentLang, {
-                style: 'currency',
-                currency: currentCurrency
-            }).format(convertedVal);
-        }
-
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            const date = new Date(dateStr);
-            return new Intl.DateTimeFormat(currentLang, { dateStyle: 'medium' }).format(date);
-        }
-
-        function toggleStandingOrderFields(checked) {
-            document.getElementById('debitAmountGroup').style.display = checked ? 'flex' : 'none';
-            document.getElementById('debitEndGroup').style.display = checked ? 'flex' : 'none';
-        }
-
-        function handleFormSubmit(e) {
-            e.preventDefault();
-
-            const name = document.getElementById('goalName').value;
-            const targetAmount = parseFloat(document.getElementById('targetAmount').value);
-            const targetDate = document.getElementById('targetDate').value;
-            const hasStandingOrder = document.getElementById('hasStandingOrder').checked;
-            const monthlyDebit = hasStandingOrder ? parseFloat(document.getElementById('monthlyDebitAmount').value || 0) : 0;
-            const debitEndDate = hasStandingOrder ? document.getElementById('debitEndDate').value : null;
-
-            // Convert inputs into Base USD for internal store
-            const rate = exchangeRates[currentCurrency];
-            const newGoal = {
-                id: Date.now(),
-                name,
-                targetAmountUSD: targetAmount / rate,
-                targetDate,
-                hasStandingOrder,
-                monthlyDebitUSD: monthlyDebit / rate,
-                debitEndDate
-            };
-
-            goals.push(newGoal);
-            document.getElementById('goalForm').reset();
-            toggleStandingOrderFields(false);
-
-            renderGoals();
-            updateMetrics();
-        }
-
-        function updateMetrics() {
-            const totalTargetUSD = goals.reduce((sum, g) => sum + g.targetAmountUSD, 0);
-            const totalDebitUSD = goals.reduce((sum, g) => sum + (g.monthlyDebitUSD || 0), 0);
-
-            document.getElementById('totalSavingsVal').textContent = formatCurrency(totalTargetUSD);
-            document.getElementById('totalDebitVal').textContent = formatCurrency(totalDebitUSD);
-        }
-
-        function renderGoals() {
-            const container = document.getElementById('goalsContainer');
-            container.innerHTML = '';
-
-            const t = translations[currentLang];
-
-            goals.forEach(goal => {
-                const card = document.createElement('div');
-                card.className = 'goal-item-card';
-
-                card.innerHTML = `
-                    <div>
-                        <div class="goal-header">
-                            <h3 style="font-size:1.1rem;">${goal.name}</h3>
-                            <span class="badge">${goal.hasStandingOrder ? t.tabDebits : t.noDebit}</span>
-                        </div>
-                        <div style="font-size:1.4rem; font-weight:700;">${formatCurrency(goal.targetAmountUSD)}</div>
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" style="width: 25%"></div>
-                        </div>
-                    </div>
-                    <div class="details-list">
-                        <div class="details-item">
-                            <span>${t.targetDateShort}:</span>
-                            <strong>${formatDate(goal.targetDate)}</strong>
-                        </div>
-                        ${goal.hasStandingOrder ? `
-                            <div class="details-item">
-                                <span>${t.monthlyShort}:</span>
-                                <strong>${formatCurrency(goal.monthlyDebitUSD)}</strong>
-                            </div>
-                            <div class="details-item">
-                                <span>${t.debitEndShort}:</span>
-                                <strong>${formatDate(goal.debitEndDate)}</strong>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // Initialize default view
-        changeLanguage('en');
-    </script>
-</body>
-</html>
+      </div>
+    </>
+  );
+}
