@@ -487,7 +487,7 @@ const INITIAL_CATEGORIES = {
 }
 
 export default function App() {
-  const [lang, setLang] = useState('en') // ברירת מחדל אנגלית לפי דרישתך
+  const [lang, setLang] = useState('en')
   const [theme, setTheme] = useState(() => localStorage.getItem('mymoney_theme') || 'dark')
   const [activeTab, setActiveTab] = useState('dashboard')
   const [transactions, setTransactions] = useState([])
@@ -576,10 +576,9 @@ export default function App() {
   const totalExpense = monthTransactions.filter(tr => Number(tr.amount) < 0).reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
   const netBalance = totalIncome - totalExpense
 
-  // חישוב תאריך הגעה משוער ליעד החיסכון
   let targetDateString = ''
   if (netBalance > 0) {
-    const remainingToSave = Math.max(savingsGoalAmount - netBalance, 0) // הנחה גסה לפי חסכון חודשי נוכחי
+    const remainingToSave = Math.max(savingsGoalAmount - netBalance, 0)
     const monthsNeeded = Math.ceil(remainingToSave / netBalance)
     if (monthsNeeded <= 0) {
       targetDateString = t.goalReached
@@ -629,7 +628,6 @@ export default function App() {
 
   const filteredTransactions = monthTransactions.filter(tr => tr.title.toLowerCase().includes(searchTerm.toLowerCase()) || (tr.category && tr.category.includes(searchTerm)))
 
-  // עיצוב לפי מצב יום/לילה פרימיום
   const bgApp = theme === 'dark' ? '#0f172a' : '#f8fafc'
   const cardBg = theme === 'dark' ? '#1e293b' : '#ffffff'
   const textMain = theme === 'dark' ? '#f8fafc' : '#0f172a'
@@ -638,16 +636,15 @@ export default function App() {
   const inputBg = theme === 'dark' ? '#0b0f19' : '#f1f5f9'
 
   return (
-    <div style={{ maxWidth: '480px', margin: '20px auto', minHeight: '92vh', padding: '20px 16px 90px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', direction: isRTL ? 'rtl' : 'ltr', textAlign: isRTL ? 'right' : 'left', background: bgApp, color: textMain, borderRadius: '28px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: `1px solid ${borderColor}`, position: 'top', boxSizing: 'border-box', transition: 'all 0.3s ease' }}>
+    <div style={{ maxWidth: '480px', margin: '20px auto', minHeight: '92vh', padding: '20px 16px 90px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', direction: isRTL ? 'rtl' : 'ltr', textAlign: isRTL ? 'right' : 'left', background: bgApp, color: textMain, borderRadius: '28px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: `1px solid ${borderColor}`, position: 'relative', boxSizing: 'border-box', transition: 'all 0.3s ease' }}>
       
-      {/* כותרת עליונה */}
+      {/* Header */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', paddingBottom: '14px', borderBottom: `1px solid ${borderColor}` }}>
         <div>
           <h1 style={{ color: textMain, margin: '0 0 2px 0', fontSize: '20px', fontWeight: '800', letterSpacing: '-0.5px' }}>{t.appName} 💼</h1>
           <span style={{ color: textMuted, fontSize: '11px', fontWeight: '500' }}>{t.tagline}</span>
         </div>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          {/* בורר שפות */}
           <select 
             value={lang} 
             onChange={(e) => setLang(e.target.value)}
@@ -675,11 +672,9 @@ export default function App() {
         </div>
       </header>
 
-      {/* ================= 1. סקירה וגרפים (Dashboard) ================= */}
+      {/* 1. Dashboard Tab */}
       {activeTab === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          
-          {/* כרטיס יתרה מרכזי בסגנון בנקאי יוקרתי */}
           <div style={{ background: theme === 'dark' ? 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)' : 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)', border: `1px solid ${borderColor}`, padding: '20px', borderRadius: '20px', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)' }}>
             <span style={{ display: 'block', fontSize: '12px', color: textMuted, marginBottom: '4px', fontWeight: '600' }}>{t.netBalance}</span>
             <span style={{ fontSize: '32px', fontWeight: '900', color: netBalance >= 0 ? (theme === 'dark' ? '#38bdf8' : '#0284c7') : '#dc2626', letterSpacing: '-1px' }}>
@@ -697,7 +692,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* ווידג'ט תקציב יומי חכם */}
           <div style={{ background: cardBg, border: `1px solid ${borderColor}`, padding: '16px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <span style={{ fontSize: '11px', color: theme === 'dark' ? '#38bdf8' : '#0284c7', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>💡 {t.safeSpend}</span>
@@ -709,7 +703,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* יעד חיסכון ותאריך יעד מדויק */}
           <div style={{ background: theme === 'dark' ? 'linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%)' : 'linear-gradient(135deg, #2563eb 100%, #1d4ed8 0%)', padding: '16px 18px', borderRadius: '16px', color: '#ffffff' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <span style={{ fontWeight: 'bold', fontSize: '13px' }}>🎯 {savingsGoalName}</span>
@@ -720,371 +713,143 @@ export default function App() {
               <strong style={{ color: '#ffffff' }}>{targetDateString}</strong>
             </div>
           </div>
-
-          {/* גרף השוואת הכנסות מול הוצאות (ויזואליזציה פיננסית) */}
-          <div style={{ background: cardBg, padding: '16px 18px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', color: textMain, margin: '0 0 10px 0', fontWeight: '700' }}>📊 הכנסות מול הוצאות בפועל</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '2px', color: textMuted }}>
-                  <span>{t.income}</span>
-                  <span style={{ color: '#059669', fontWeight: 'bold' }}>₪{totalIncome}</span>
-                </div>
-                <div style={{ background: inputBg, borderRadius: '6px', height: '8px', overflow: 'hidden' }}>
-                  <div style={{ background: '#059669', width: `${totalIncome > 0 ? Math.min(Math.round((totalIncome / (totalIncome + totalExpense || 1)) * 100), 100) : 0}%`, height: '100%' }}></div>
-                </div>
-              </div>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '2px', color: textMuted }}>
-                  <span>{t.expenses}</span>
-                  <span style={{ color: '#dc2626', fontWeight: 'bold' }}>₪{totalExpense}</span>
-                </div>
-                <div style={{ background: inputBg, borderRadius: '6px', height: '8px', overflow: 'hidden' }}>
-                  <div style={{ background: '#dc2626', width: `${totalIncome + totalExpense > 0 ? Math.min(Math.round((totalExpense / (totalIncome + totalExpense || 1)) * 100), 100) : 0}%`, height: '100%' }}></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* מד תקציב כללי */}
-          <div style={{ background: cardBg, padding: '16px 18px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '12px', color: textMain }}>📊 {t.budgetLimit}</span>
-              <span style={{ fontSize: '11px', color: textMuted }}>₪{totalExpense} / ₪{monthlyBudgetLimit}</span>
-            </div>
-            <div style={{ background: inputBg, borderRadius: '6px', height: '8px', width: '100%', overflow: 'hidden' }}>
-              <div style={{ background: budgetColor, width: `${budgetPercentage}%`, height: '100%', transition: 'width 0.4s ease' }}></div>
-            </div>
-          </div>
-
-          {/* פילוח לפי קטגוריות */}
-          <div style={{ background: cardBg, padding: '16px 18px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', color: textMain, margin: '0 0 10px 0', fontWeight: '700' }}>📈 {t.categoryBreakdown}</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {expensesByCategory.map(cat => {
-                const catPercentage = cat.limit > 0 ? Math.min(Math.round((cat.total / cat.limit) * 100), 100) : 0
-                return (
-                  <div key={cat.name} style={{ background: inputBg, padding: '8px 10px', borderRadius: '10px', border: `1px solid ${borderColor}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: '600', color: textMain }}>
-                        {cat.icon} {cat.name}
-                      </span>
-                      <span style={{ fontSize: '11px', fontWeight: 'bold', color: cat.total > 0 ? '#dc2626' : textMuted }}>
-                        ₪{cat.total.toLocaleString()} <span style={{ fontSize: '10px', color: textMuted, fontWeight: 'normal' }}>/ ₪{cat.limit}</span>
-                      </span>
-                    </div>
-                    <div style={{ background: cardBg, borderRadius: '4px', height: '5px', width: '100%', overflow: 'hidden' }}>
-                      <div style={{ background: cat.color, width: `${catPercentage}%`, height: '100%' }}></div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
         </div>
       )}
 
-      {/* ================= 2. ניהול תנועות (Transactions) ================= */}
+      {/* Transactions Tab */}
       {activeTab === 'transactions' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h3 style={{ fontSize: '14px', color: textMain, margin: 0 }}>{t.transactions}</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <input 
               type="text" 
-              placeholder={t.searchPlaceholder}
+              placeholder={t.searchPlaceholder} 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ padding: '6px 10px', borderRadius: '8px', border: `1px solid ${borderColor}`, fontSize: '11px', width: '130px', background: inputBg, color: textMain, outline: 'none' }}
+              style={{ flex: 1, padding: '10px 14px', borderRadius: '12px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }}
             />
-          </div>
-
-          {filteredTransactions.length === 0 ? (
-            <p style={{ color: textMuted, textAlign: 'center', padding: '40px', background: cardBg, borderRadius: '14px', border: `1px solid ${borderColor}`, fontSize: '12px' }}>{t.noTransactions}</p>
-          ) : (
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {filteredTransactions.map((item) => {
-                const isIncome = Number(item.amount) > 0
-                const catInfo = categories[item.category] || { icon: '📦', color: '#475569' }
-                const costInHours = !isIncome && hourlyWage > 0 ? (Math.abs(Number(item.amount)) / hourlyWage).toFixed(1) : null
-
-                return (
-                  <li key={item.id} style={{ background: cardBg, border: `1px solid ${borderColor}`, padding: '10px 12px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '16px', background: inputBg, padding: '6px', borderRadius: '8px', border: `1px solid ${borderColor}` }}>{isIncome ? '💰' : catInfo.icon}</span>
-                      <div>
-                        <span style={{ fontWeight: '600', color: textMain, display: 'block', fontSize: '12px' }}>
-                          {item.title} {item.is_recurring && <span style={{ fontSize: '9px', background: '#1d4ed8', color: '#ffffff', padding: '1px 5px', borderRadius: '4px', marginInlineStart: '4px' }}>{t.recurringBadge}</span>}
-                        </span>
-                        <span style={{ fontSize: '10px', color: textMuted }}>
-                          {item.category || 'General'} {costInHours && `• ⏳ ${costInHours} ${t.workHours}`}
-                        </span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: isIncome ? '#059669' : '#dc2626' }}>
-                        {isIncome ? `+₪${Number(item.amount).toLocaleString()}` : `₪${Number(item.amount).toLocaleString()}`}
-                      </span>
-                      <button 
-                        onClick={() => deleteTransaction(item.id)}
-                        style={{ background: inputBg, border: `1px solid ${borderColor}`, color: textMuted, cursor: 'pointer', fontSize: '12px', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {/* ================= 3. יעדים ותקציבים (Budgets & Goals) ================= */}
-      {activeTab === 'budgets' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          
-          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', color: textMain, margin: '0 0 8px 0', fontWeight: '700' }}>🎯 {t.savingsGoal}</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <input 
-                type="text" 
-                value={savingsGoalName} 
-                onChange={(e) => setSavingsGoalName(e.target.value)} 
-                placeholder="Goal Name..."
-                style={{ width: '100%', padding: '10px', fontSize: '12px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, boxSizing: 'border-box', outline: 'none' }}
-              />
-              <input 
-                type="number" 
-                value={savingsGoalAmount} 
-                onChange={(e) => setSavingsGoalAmount(Number(e.target.value))} 
-                placeholder="Amount..."
-                style={{ width: '100%', padding: '10px', fontSize: '12px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, boxSizing: 'border-box', outline: 'none' }}
-              />
-            </div>
-          </div>
-
-          {/* הגדרות עיצוב ומערכת */}
-          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', color: textMain, margin: '0 0 10px 0', fontWeight: '700' }}>⚙️ {t.systemSettings}</h3>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingBottom: '10px', borderBottom: `1px solid ${borderColor}` }}>
-              <span style={{ fontSize: '12px', color: textMain }}>{t.themeToggle}</span>
-              <button 
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                style={{ background: inputBg, border: `1px solid ${borderColor}`, color: textMain, padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
-              >
-                {theme === 'dark' ? t.lightMode : t.darkMode}
-              </button>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              <div>
-                <label style={{ fontSize: '11px', color: textMuted, display: 'block', marginBottom: '4px' }}>{t.budgetLimit} (₪)</label>
-                <input 
-                  type="number" 
-                  value={monthlyBudgetLimit} 
-                  onChange={(e) => setMonthlyBudgetLimit(Number(e.target.value))} 
-                  style={{ width: '100%', padding: '8px', fontSize: '12px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, boxSizing: 'border-box', outline: 'none' }}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: '11px', color: textMuted, display: 'block', marginBottom: '4px' }}>{t.hourlyWage} (₪)</label>
-                <input 
-                  type="number" 
-                  value={hourlyWage} 
-                  onChange={(e) => setHourlyWage(Number(e.target.value))} 
-                  style={{ width: '100%', padding: '8px', fontSize: '12px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, boxSizing: 'border-box', outline: 'none' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', color: textMain, margin: '0 0 8px 0', fontWeight: '700' }}>{t.categoryLimits}</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {Object.keys(categories).map(catName => (
-                <div key={catName} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: inputBg, padding: '6px 10px', borderRadius: '8px', border: `1px solid ${borderColor}` }}>
-                  <span style={{ fontSize: '12px', color: textMain }}>{categories[catName].icon} {catName}</span>
-                  <input
-                    type="number"
-                    value={categories[catName].limit}
-                    onChange={(e) => {
-                      const val = e.target.value
-                      setCategories(prev => ({ ...prev, [catName]: { ...prev[catName], limit: Number(val) || 0 } }))
-                    }}
-                    style={{ width: '65px', padding: '4px', borderRadius: '6px', border: `1px solid ${borderColor}`, background: cardBg, color: textMain, fontSize: '12px', textAlign: 'center', outline: 'none' }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= 4. כלים מתקדמים (Tools) ================= */}
-      {activeTab === 'tools' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          
-          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', color: textMain, margin: '0 0 4px 0', fontWeight: '700' }}>📡 {t.subscriptionRadar}</h3>
-            <p style={{ fontSize: '11px', color: textMuted, margin: '0 0 10px 0' }}>{t.yearlyTotal} <b style={{ color: '#dc2626' }}>₪{totalRecurringYearly.toLocaleString()}</b></p>
-            {recurringExpenses.length === 0 ? (
-              <p style={{ fontSize: '11px', color: textMuted, margin: 0 }}>{t.noSubscriptions}</p>
-            ) : (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {recurringExpenses.map(item => (
-                  <li key={item.id} style={{ background: inputBg, padding: '8px 10px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', border: `1px solid ${borderColor}` }}>
-                    <span style={{ color: textMain }}>{item.title}</span>
-                    <span style={{ color: '#dc2626', fontWeight: 'bold' }}>₪{Math.abs(Number(item.amount))} / mo</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}`, textAlign: 'center' }}>
             <button 
-              onClick={exportToCSV}
-              style={{ width: '100%', background: '#2563eb', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
+              onClick={() => setIsModalOpen(true)}
+              style={{ background: '#2563eb', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
             >
-              {t.exportCSV}
+              + {t.newTransaction}
             </button>
           </div>
 
-        </div>
-      )}
-
-      {/* ================= כפתור הוספה מהירה צף (FAB) ================= */}
-      <button 
-        onClick={() => setIsModalOpen(true)}
-        style={{ position: 'fixed', bottom: '75px', left: '50%', transform: 'translateX(-50%)', background: '#2563eb', color: '#ffffff', border: 'none', width: '52px', height: '52px', borderRadius: '50%', fontSize: '26px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 10px 20px rgba(37, 99, 235, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}
-      >
-        +
-      </button>
-
-      {/* ================= מודל הוספת תנועה ================= */}
-      {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 1000, padding: 0 }}>
-          <div style={{ background: cardBg, width: '100%', maxWidth: '480px', padding: '20px 18px 30px 18px', borderRadius: '24px 24px 0 0', borderTop: `1px solid ${borderColor}`, boxSizing: 'border-box' }}>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <h3 style={{ fontSize: '15px', color: textMain, margin: 0, fontWeight: '700' }}>{t.newTransaction}</h3>
-              <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', color: textMuted, fontSize: '18px', cursor: 'pointer' }}>×</button>
-            </div>
-
-            <form onSubmit={addTransaction}>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                <button
-                  type="button"
-                  onClick={() => setType('expense')}
-                  style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: type === 'expense' ? '#dc2626' : inputBg, color: type === 'expense' ? '#ffffff' : textMuted, fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
-                >
-                  {t.expenseType}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setType('income')}
-                  style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: type === 'income' ? '#059669' : inputBg, color: type === 'income' ? '#ffffff' : textMuted, fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
-                >
-                  {t.incomeType}
-                </button>
-              </div>
-
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '11px', color: textMuted }}>{t.titleLabel}</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder={t.titlePlaceholder}
-                  style={{ width: '100%', padding: '10px', boxSizing: 'border-box', borderRadius: '8px', border: `1px solid ${borderColor}`, fontSize: '12px', background: inputBg, color: textMain, outline: 'none' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontSize: '11px', color: textMuted }}>{t.amountLabel}</label>
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0"
-                  style={{ width: '100%', padding: '10px', boxSizing: 'border-box', borderRadius: '8px', border: `1px solid ${borderColor}`, fontSize: '12px', background: inputBg, color: textMain, outline: 'none' }}
-                />
-              </div>
-
-              {type === 'expense' && (
-                <div style={{ marginBottom: '10px' }}>
-                  <label style={{ display: 'block', marginBottom: '4px', fontSize: '11px', color: textMuted }}>{t.categoryLabel}</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    style={{ width: '100%', padding: '10px', boxSizing: 'border-box', borderRadius: '8px', border: `1px solid ${borderColor}`, fontSize: '12px', background: inputBg, color: textMain, outline: 'none' }}
-                  >
-                    {Object.keys(categories).map(cat => (
-                      <option key={cat} value={cat}>{categories[cat].icon} {cat}</option>
-                    ))}
-                  </select>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '450px', overflowY: 'auto' }}>
+            {filteredTransactions.length === 0 ? (
+              <p style={{ textAlign: 'center', color: textMuted, fontSize: '12px', padding: '20px' }}>{t.noTransactions}</p>
+            ) : (
+              filteredTransactions.map(tr => (
+                <div key={tr.id} style={{ background: cardBg, padding: '12px 14px', borderRadius: '12px', border: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <span style={{ display: 'block', fontWeight: '700', fontSize: '13px', color: textMain }}>{tr.title}</span>
+                    <span style={{ fontSize: '10px', color: textMuted }}>{tr.category} {tr.is_recurring && `• ${t.recurringBadge}`}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontWeight: '800', fontSize: '14px', color: Number(tr.amount) > 0 ? '#059669' : '#dc2626' }}>
+                      {Number(tr.amount) > 0 ? `+₪${tr.amount}` : `-₪{Math.abs(tr.amount)}`}
+                    </span>
+                    <button onClick={() => deleteTransaction(tr.id)} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                  </div>
                 </div>
-              )}
-
-              {type === 'expense' && (
-                <div style={{ marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <input 
-                    type="checkbox" 
-                    id="recurringModal"
-                    checked={isRecurring}
-                    onChange={(e) => setIsRecurring(e.target.checked)}
-                    style={{ width: '14px', height: '14px', cursor: 'pointer', accentColor: '#2563eb' }}
-                  />
-                  <label htmlFor="recurringModal" style={{ fontSize: '11px', color: textMain, cursor: 'pointer' }}>
-                    {t.recurringCheckbox}
-                  </label>
-                </div>
-              )}
-
-              <button type="submit" style={{ width: '100%', background: type === 'expense' ? '#dc2626' : '#059669', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>
-                {t.saveButton}
-              </button>
-            </form>
-
+              ))
+            )}
           </div>
         </div>
       )}
 
-      {/* ================= סרגל ניווט תחתון ================= */}
-      <nav style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '480px', background: cardBg, borderTop: `1px solid ${borderColor}`, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: '8px 0 14px 0', zIndex: 90 }}>
-        <button
-          onClick={() => setActiveTab('dashboard')}
+      {/* Budgets Tab */}
+      {activeTab === 'budgets' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ fontSize: '13px', margin: '0 0 12px 0', color: textMain }}>{t.categoryBreakdown}</h3>
+            {expensesByCategory.map(cat => (
+              <div key={cat.name} style={{ marginBottom: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
+                  <span>{cat.icon} {cat.name}</span>
+                  <span style={{ fontWeight: 'bold' }}>₪{cat.total} / ₪{cat.limit}</span>
+                </div>
+                <div style={{ background: inputBg, height: '6px', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ background: cat.color, width: `${Math.min(Math.round((cat.total / cat.limit) * 100), 100)}%`, height: '100%' }}></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Tools Tab */}
+      {activeTab === 'tools' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ fontSize: '13px', margin: '0 0 10px 0', color: textMain }}>{t.subscriptionRadar}</h3>
+            <p style={{ fontSize: '11px', color: textMuted }}>{t.yearlyTotal} <strong>₪{totalRecurringYearly.toLocaleString()}</strong></p>
+            <button onClick={exportToCSV} style={{ width: '100%', marginTop: '10px', background: '#059669', color: '#fff', border: 'none', padding: '10px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>
+              {t.exportCSV}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Fixed Bottom Navigation */}
+      <nav style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '480px', background: cardBg, borderTop: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-around', padding: '10px 0', boxSizing: 'border-box', zIndex: 1000 }}>
+        <button 
+          onClick={() => setActiveTab('dashboard')} 
           style={{ background: 'none', border: 'none', color: activeTab === 'dashboard' ? '#2563eb' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
         >
           <span style={{ fontSize: '16px' }}>📊</span>
-          {t.dashboard}
+          <span>{t.dashboard}</span>
         </button>
-        <button
-          onClick={() => setActiveTab('transactions')}
+        <button 
+          onClick={() => setActiveTab('transactions')} 
           style={{ background: 'none', border: 'none', color: activeTab === 'transactions' ? '#2563eb' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
         >
           <span style={{ fontSize: '16px' }}>💳</span>
-          {t.transactions}
+          <span>{t.transactions}</span>
         </button>
-        <button
-          onClick={() => setActiveTab('budgets')}
+        <button 
+          onClick={() => setActiveTab('budgets')} 
           style={{ background: 'none', border: 'none', color: activeTab === 'budgets' ? '#2563eb' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
         >
-          <span style={{ fontSize: '16px'}}}}
-        >
           <span style={{ fontSize: '16px' }}>🎯</span>
-          {t.budgets}
+          <span>{t.budgets}</span>
         </button>
-        <button
-          onClick={() => setActiveTab('tools')}
+        <button 
+          onClick={() => setActiveTab('tools')} 
           style={{ background: 'none', border: 'none', color: activeTab === 'tools' ? '#2563eb' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
         >
-          <span style={{ fontSize: '16px' }}>⚡</span>
-          {t.tools}
+          <span style={{ fontSize: '16px' }}>🛠️</span>
+          <span>{t.tools}</span>
         </button>
       </nav>
+
+      {/* New Transaction Modal */}
+      {isModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
+          <div style={{ background: cardBg, padding: '20px', borderRadius: '20px', width: '90%', maxWidth: '360px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ margin: '0 0 14px 0', fontSize: '16px', color: textMain }}>{t.newTransaction}</h3>
+            <form onSubmit={addTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="button" onClick={() => setType('expense')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: type === 'expense' ? '#dc2626' : inputBg, color: type === 'expense' ? '#fff' : textMain, fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>{t.expenseType}</button>
+                <button type="button" onClick={() => setType('income')} style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: type === 'income' ? '#059669' : inputBg, color: type === 'income' ? '#fff' : textMain, fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>{t.incomeType}</button>
+              </div>
+              <input type="text" placeholder={t.titlePlaceholder} value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }} />
+              <input type="number" placeholder={t.amountLabel} value={amount} onChange={(e) => setAmount(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }} />
+              
+              {type === 'expense' && (
+                <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }}>
+                  {Object.keys(categories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                </select>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="submit" style={{ flex: 1, background: '#2563eb', color: '#fff', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.saveButton}</button>
+                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, background: 'transparent', color: textMuted, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   )
