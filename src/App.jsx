@@ -11,7 +11,7 @@ const INITIAL_CATEGORIES = {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard') // 'dashboard' | 'transactions' | 'budgets'
+  const [activeTab, setActiveTab] = useState('dashboard') // 'dashboard' | 'transactions' | 'budgets' | 'tools'
   const [transactions, setTransactions] = useState([])
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
@@ -20,15 +20,21 @@ export default function App() {
   const [isRecurring, setIsRecurring] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
 
-  // שמירה וטעינה של הגדרות מה-localStorage כדי שרענון לא יאפס כלום
-  const [savingsGoal, setSavingsGoal] = useState(() => {
-    return Number(localStorage.getItem('nexus_savings_goal')) || 150000
+  // שמירה וטעינה של הגדרות מתקדמות מה-localStorage
+  const [savingsGoalAmount, setSavingsGoalAmount] = useState(() => {
+    return Number(localStorage.getItem('mymoney_savings_amount')) || 50000
+  })
+  const [savingsGoalName, setSavingsGoalName] = useState(() => {
+    return localStorage.getItem('mymoney_savings_name') || 'חופשת חלום ביעד אקזוטי ✈️'
+  })
+  const [hourlyWage, setHourlyWage] = useState(() => {
+    return Number(localStorage.getItem('mymoney_hourly_wage')) || 60
   })
   const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(() => {
-    return Number(localStorage.getItem('nexus_monthly_budget')) || 9000
+    return Number(localStorage.getItem('mymoney_monthly_budget')) || 9000
   })
   const [categories, setCategories] = useState(() => {
-    const saved = localStorage.getItem('nexus_categories')
+    const saved = localStorage.getItem('mymoney_categories')
     return saved ? JSON.parse(saved) : INITIAL_CATEGORIES
   })
 
@@ -36,15 +42,23 @@ export default function App() {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthString())
 
   useEffect(() => {
-    localStorage.setItem('nexus_savings_goal', savingsGoal)
-  }, [savingsGoal])
+    localStorage.setItem('mymoney_savings_amount', savingsGoalAmount)
+  }, [savingsGoalAmount])
 
   useEffect(() => {
-    localStorage.setItem('nexus_monthly_budget', monthlyBudgetLimit)
+    localStorage.setItem('mymoney_savings_name', savingsGoalName)
+  }, [savingsGoalName])
+
+  useEffect(() => {
+    localStorage.setItem('mymoney_hourly_wage', hourlyWage)
+  }, [hourlyWage])
+
+  useEffect(() => {
+    localStorage.setItem('mymoney_monthly_budget', monthlyBudgetLimit)
   }, [monthlyBudgetLimit])
 
   useEffect(() => {
-    localStorage.setItem('nexus_categories', JSON.stringify(categories))
+    localStorage.setItem('mymoney_categories', JSON.stringify(categories))
   }, [categories])
 
   useEffect(() => {
@@ -75,8 +89,7 @@ export default function App() {
       .select()
 
     if (error) {
-      console.log('Supabase Error Details:', error)
-      alert('שגיאה בסופאבייס: ' + error.message)
+      alert('שגיאה בשמירה: ' + error.message)
     } else if (data) {
       setTransactions([data[0], ...transactions])
       setTitle('')
@@ -106,20 +119,17 @@ export default function App() {
   if (budgetPercentage > 75) budgetColor = '#f59e0b' 
   if (budgetPercentage >= 100) budgetColor = '#ef4444' 
 
-  function getSmartAdvisorMessage() {
-    if (totalExpense === 0 && totalIncome === 0) return 'ברוך הבא למערכת הפיננסית שלך! התחל להזין תנועות כדי לקבל אנליטיקה מלאה.'
-    if (budgetPercentage >= 100) return '🚨 חריגה חמורה מהתקציב הכללי! נדרשת עצירה מיידית של הוצאות לא חיוניות.'
-    if (budgetPercentage > 75) return '⚠️ שים לב: ניצלת מעל 75% מסגרת התקציב שלך החודש. שמור על ערנות.'
-    if (netBalance > 0) return '🌟 התנהלות מצוינת! אתה מייצר תזרים חיובי ובונה את העתיד הכלכלי שלך.'
-    return '💡 טיפ מקצועי: בדוק איפה אפשר לקצץ השבוע כדי לאזן את המאזן.'
-  }
+  // מנועי חישוב חכמים
+  const recurringExpenses = monthTransactions.filter(t => t.is_recurring && Number(t.amount) < 0)
+  const totalRecurringMonthly = recurringExpenses.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0)
+  const totalRecurringYearly = totalRecurringMonthly * 12
 
-  function calculateGoalDate() {
-    if (netBalance <= 0) return 'אין חיסכון חיובי החודש לחישוב תחזית'
-    const monthsNeeded = Math.ceil(savingsGoal / netBalance)
-    const targetDate = new Date()
-    targetDate.setMonth(targetDate.getMonth() + monthsNeeded)
-    return targetDate.toLocaleDateString('he-IL', { month: 'long', year: 'numeric' })
+  function getSmartAdvisorMessage() {
+    if (totalExpense === 0 && totalIncome === 0) return 'ברוך הבא ל-My Money! התחל להזין תנועות כדי לאפשר למערכת לנתח את ההון שלך.'
+    if (budgetPercentage >= 100) return '🚨 חריגה חמורה ממסגרת התקציב! נדרשת עצירה של הוצאות לא הכרחיות החודש.'
+    if (budgetPercentage > 75) return '⚠️ שים לב: ניצלת מעל 75% מהתקציב הכללי. תכנן את ההוצאות שלך בזהירות.'
+    if (netBalance > 0) return '🌟 כל הכבוד! אתה מייצר תזרים מזומנים חיובי שמקרב אותך ישירות ליעד החיסכון שלך.'
+    return '💡 טיפ פיננסי: בדוק את רדאר המנויים וההוצאות הקבועות שלך כדי לאתר מקומות לקצץ.'
   }
 
   const expensesByCategory = Object.keys(categories).map(cat => {
@@ -136,29 +146,16 @@ export default function App() {
     }))
   }
 
-  function exportToCSV() {
-    const headers = "כותרת,סכום,קטגוריה,הוראת קבע,תאריך\n"
-    const rows = monthTransactions.map(t => `"${t.title}",${t.amount},"${t.category || 'כללי'}","${t.is_recurring ? 'כן' : 'לא'}","${new Date(t.created_at || Date.now()).toLocaleDateString()}"`).join("\n")
-    const blob = new Blob(["\uFEFF" + headers + rows], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.setAttribute('href', url)
-    link.setAttribute('download', `finances_${selectedMonth}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
   const filteredTransactions = monthTransactions.filter(t => t.title.toLowerCase().includes(searchTerm.toLowerCase()) || (t.category && t.category.includes(searchTerm)))
 
   return (
-    <div style={{ maxWidth: '850px', margin: '40px auto', padding: '32px', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl', textAlign: 'right', background: '#0f172a', color: '#f8fafc', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+    <div style={{ maxWidth: '900px', margin: '40px auto', padding: '32px', fontFamily: 'system-ui, -apple-system, sans-serif', direction: 'rtl', textAlign: 'right', background: '#0f172a', color: '#f8fafc', borderRadius: '24px', boxShadow: '0 25px 50px rgba(0,0,0,0.4)', border: '1px solid #1e293b' }}>
       
       {/* כותרת ראשית ובורר חודשים */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #1e293b', paddingBottom: '20px' }}>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #1e293b', paddingBottom: '20px' }}>
         <div>
-          <h1 style={{ color: '#f8fafc', margin: '0 0 6px 0', fontSize: '26px', letterSpacing: '-0.5px' }}>Nexus Finance 💎</h1>
-          <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>מערכת ניהול הון מתקדמת ואנליטיקת הוצאות בזמן אמת</p>
+          <h1 style={{ color: '#f8fafc', margin: '0 0 4px 0', fontSize: '28px', letterSpacing: '-0.5px' }}>My Money 💎</h1>
+          <p style={{ color: '#94a3b8', margin: 0, fontSize: '13px' }}>מערכת ניהול הון חכמה, שליטה בתקציב ומעקב יעדים אישיים</p>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <input 
@@ -167,39 +164,38 @@ export default function App() {
             onChange={(e) => setSelectedMonth(e.target.value)}
             style={{ padding: '8px 12px', borderRadius: '10px', border: '1px solid #334155', fontSize: '13px', fontWeight: 'bold', background: '#1e293b', color: 'white', outline: 'none' }}
           />
-          <button 
-            onClick={exportToCSV}
-            style={{ background: '#334155', border: 'none', padding: '9px 14px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', color: '#f8fafc', fontSize: '13px' }}
-            title="ייצא חודש נוכחי לאקסל"
-          >
-            📥 ייצוא CSV
-          </button>
         </div>
       </header>
 
-      {/* פאנל לשוניות (Tabs) ניווט ראשי */}
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', background: '#1e293b', padding: '6px', borderRadius: '14px', border: '1px solid #334155' }}>
+      {/* פאנל לשוניות ניווט ראשי (Tabs) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '24px', background: '#1e293b', padding: '6px', borderRadius: '14px', border: '1px solid #334155' }}>
         <button
           onClick={() => setActiveTab('dashboard')}
-          style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: activeTab === 'dashboard' ? '#3b82f6' : 'transparent', color: activeTab === 'dashboard' ? 'white' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s' }}
+          style={{ padding: '10px', borderRadius: '10px', border: 'none', background: activeTab === 'dashboard' ? '#3b82f6' : 'transparent', color: activeTab === 'dashboard' ? 'white' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s' }}
         >
           📊 סקירה וגרפים
         </button>
         <button
           onClick={() => setActiveTab('transactions')}
-          style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: activeTab === 'transactions' ? '#3b82f6' : 'transparent', color: activeTab === 'transactions' ? 'white' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s' }}
+          style={{ padding: '10px', borderRadius: '10px', border: 'none', background: activeTab === 'transactions' ? '#3b82f6' : 'transparent', color: activeTab === 'transactions' ? 'white' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s' }}
         >
           💳 ניהול תנועות
         </button>
         <button
           onClick={() => setActiveTab('budgets')}
-          style={{ flex: 1, padding: '10px', borderRadius: '10px', border: 'none', background: activeTab === 'budgets' ? '#3b82f6' : 'transparent', color: activeTab === 'budgets' ? 'white' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s' }}
+          style={{ padding: '10px', borderRadius: '10px', border: 'none', background: activeTab === 'budgets' ? '#3b82f6' : 'transparent', color: activeTab === 'budgets' ? 'white' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s' }}
         >
           🎯 יעדים ותקציבים
         </button>
+        <button
+          onClick={() => setActiveTab('tools')}
+          style={{ padding: '10px', borderRadius: '10px', border: 'none', background: activeTab === 'tools' ? '#3b82f6' : 'transparent', color: activeTab === 'tools' ? 'white' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', transition: 'all 0.2s' }}
+        >
+          ⚡ כלים מתקדמים
+        </button>
       </div>
 
-      {/* ================= לוח הבקרה והגרפים (Dashboard) ================= */}
+      {/* ================= 1. סקירה וגרפים (Dashboard) ================= */}
       {activeTab === 'dashboard' && (
         <div>
           {/* יועץ פיננסי חכם */}
@@ -227,7 +223,18 @@ export default function App() {
             </div>
           </div>
 
-          {/* מד תקציב חודשי כללי */}
+          {/* ייצוג ויזואלי של יעד החיסכון האישי */}
+          <div style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%)', padding: '20px', borderRadius: '16px', marginBottom: '20px', color: 'white', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+              <span style={{ fontWeight: 'bold', fontSize: '15px' }}>🎯 יעד חיסכון אישי: {savingsGoalName}</span>
+              <span style={{ fontSize: '14px', fontWeight: '800' }}>₪{savingsGoalAmount.toLocaleString()}</span>
+            </div>
+            <p style={{ margin: 0, fontSize: '13px', color: '#e0f2fe' }}>
+              💡 ניתן לעדכן את שם היעד והסכום בכל רגע בלשונית <b>"יעדים ותקציבים"</b>.
+            </p>
+          </div>
+
+          {/* מד תקציב כללי */}
           <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', marginBottom: '20px', border: '1px solid #334155' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#f8fafc' }}>📊 מסגרת תקציב כללית (₪{monthlyBudgetLimit.toLocaleString()})</span>
@@ -237,23 +244,13 @@ export default function App() {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#94a3b8' }}>
               <span>נוצלו: ₪{totalExpense.toLocaleString()} ({budgetPercentage}%)</span>
-              <span>נותר למסגרת: ₪{Math.max(monthlyBudgetLimit - totalExpense, 0).toLocaleString()}</span>
+              <span>נותר במסגרת: ₪{Math.max(monthlyBudgetLimit - totalExpense, 0).toLocaleString()}</span>
             </div>
           </div>
 
-          {/* תחזית יעד חיסכון */}
-          <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: 'white', padding: '20px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 'bold', fontSize: '15px' }}>🎯 יעד חיסכון עתידי (₪{savingsGoal.toLocaleString()})</span>
-            </div>
-            <p style={{ margin: 0, fontSize: '13px', color: '#e0f2fe', lineHeight: '1.4' }}>
-              🚀 <b>תחזית אלגוריתמית:</b> בקצב החסכון הנוכחי לחודש זה, תגיע ליעד סביב: <b>{calculateGoalDate()}</b>.
-            </p>
-          </div>
-
-          {/* פילוח הוצאות חזותי מלא (גרפים לפי קטגוריות והתקדמות מול יעד אישי) */}
+          {/* פילוח הוצאות חזותי לפי קטגוריות */}
           <div style={{ background: '#1e293b', padding: '22px', borderRadius: '16px', border: '1px solid #334155' }}>
-            <h3 style={{ fontSize: '15px', color: '#f8fafc', margin: '0 0 16px 0' }}>📈 פילוח התפלגות הוצאות חזותי לפי קטגוריות:</h3>
+            <h3 style={{ fontSize: '15px', color: '#f8fafc', margin: '0 0 16px 0' }}>📈 פילוח התפלגות הוצאות מול יעדים אישיים:</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {expensesByCategory.map(cat => {
                 const catPercentage = cat.limit > 0 ? Math.min(Math.round((cat.total / cat.limit) * 100), 100) : 0
@@ -265,10 +262,9 @@ export default function App() {
                         {cat.icon} {cat.name} <span style={{ fontSize: '11px', color: '#94a3b8', marginRight: '6px' }}>({shareOfTotal}% מההוצאות)</span>
                       </span>
                       <span style={{ fontSize: '13px', fontWeight: 'bold', color: cat.total > 0 ? '#ef4444' : '#94a3b8' }}>
-                        ₪{cat.total.toLocaleString()} <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'normal' }}>/ יעד אישי ₪{cat.limit.toLocaleString()}</span>
+                        ₪{cat.total.toLocaleString()} <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'normal' }}>/ יעד ₪{cat.limit.toLocaleString()}</span>
                       </span>
                     </div>
-                    {/* פס התקדמות יעד אישי */}
                     <div style={{ background: '#1e293b', borderRadius: '6px', height: '8px', width: '100%', overflow: 'hidden' }}>
                       <div style={{ background: cat.color, width: `${catPercentage}%`, height: '100%', transition: 'width 0.4s ease' }}></div>
                     </div>
@@ -280,10 +276,10 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= ניהול תנועות והוספה (Transactions) ================= */}
+      {/* ================= 2. ניהול תנועות (Transactions) ================= */}
       {activeTab === 'transactions' && (
         <div>
-          {/* טופס הוספת תנועה */}
+          {/* טופס הוספה */}
           <form onSubmit={addTransaction} style={{ background: '#1e293b', padding: '22px', borderRadius: '16px', marginBottom: '24px', border: '1px solid #334155' }}>
             <h3 style={{ fontSize: '15px', color: '#f8fafc', margin: '0 0 16px 0' }}>➕ הוספת תנועה חדשה</h3>
             <div style={{ display: 'flex', gap: '10px', marginBottom: '16px' }}>
@@ -352,7 +348,7 @@ export default function App() {
                   style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#3b82f6' }}
                 />
                 <label htmlFor="recurringCheck" style={{ fontSize: '13px', color: '#cbd5e1', cursor: 'pointer' }}>
-                  🔄 זוהי הוצאה קבועה / הוראת קבע חודשית
+                  🔄 זוהי הוצאה קבועה / מנוי חודשי (נכנס לרדאר המנויים)
                 </label>
               </div>
             )}
@@ -362,7 +358,7 @@ export default function App() {
             </button>
           </form>
 
-          {/* רשימת תנועות וחיפוש */}
+          {/* רשימה וחיפוש */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <h3 style={{ fontSize: '16px', color: '#f8fafc', margin: 0 }}>התנועות בחודש {selectedMonth}:</h3>
             <input 
@@ -375,12 +371,14 @@ export default function App() {
           </div>
 
           {filteredTransactions.length === 0 ? (
-            <p style={{ color: '#64748b', textAlign: 'center', padding: '40px', background: '#1e293b', borderRadius: '16px', border: '1px solid #334155' }}>אין תנועות בחודש הנבחר. הוסף תנועה חדשה בלשונית זו או בחר חודש אחר! 🚀</p>
+            <p style={{ color: '#64748b', textAlign: 'center', padding: '40px', background: '#1e293b', borderRadius: '16px', border: '1px solid #334155' }}>אין תנועות בחודש הנבחר. הוסף תנועה חדשה! 🚀</p>
           ) : (
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {filteredTransactions.map((item) => {
                 const isIncome = Number(item.amount) > 0
                 const catInfo = categories[item.category] || { icon: '📦', color: '#64748b' }
+                const costInHours = !isIncome && hourlyWage > 0 ? (Math.abs(Number(item.amount)) / hourlyWage).toFixed(1) : null
+
                 return (
                   <li key={item.id} style={{ background: '#1e293b', border: '1px solid #334155', padding: '14px 18px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -389,7 +387,9 @@ export default function App() {
                         <span style={{ fontWeight: '600', color: '#f8fafc', display: 'block', fontSize: '14px' }}>
                           {item.title} {item.is_recurring && <span style={{ fontSize: '11px', background: '#1e3a8a', color: '#60a5fa', padding: '2px 8px', borderRadius: '6px', marginRight: '8px', border: '1px solid #3b82f6' }}>קבוע 🔄</span>}
                         </span>
-                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>{item.category || 'כללי'}</span>
+                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                          {item.category || 'כללי'} {costInHours && `• ⏳ עלה לך כ-${costInHours} שעות עבודה`}
+                        </span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -412,16 +412,42 @@ export default function App() {
         </div>
       )}
 
-      {/* ================= הגדרת יעדים ותקציבים אישיים (Budgets) ================= */}
+      {/* ================= 3. יעדים ותקציבים (Budgets & Goals) ================= */}
       {activeTab === 'budgets' && (
         <div style={{ background: '#1e293b', padding: '24px', borderRadius: '16px', border: '1px solid #334155' }}>
-          <h3 style={{ fontSize: '16px', color: '#f8fafc', margin: '0 0 8px 0' }}>🎯 הגדרת תקציבי קטגוריות ויעדים אישיים</h3>
-          <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px 0' }}>כאן תוכל לקבוע בעצמך את היעדים והמסגרות לכל קטגוריה וליעד החיסכון הכללי. השינויים נשמרים אוטומטית!</p>
+          <h3 style={{ fontSize: '16px', color: '#f8fafc', margin: '0 0 8px 0' }}>🎯 ניהול יעדי חיסכון ומסגרות תקציב אישיות</h3>
+          <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px 0' }}>הגדר את המטרה המדויקת שאליה אתה חוסך ואת התקציב לכל קטגוריה.</p>
 
-          {/* הגדרת מסגרת כללית ויעד חיסכון */}
+          {/* הגדרת יעד חיסכון עם שם */}
+          <div style={{ background: '#0f172a', padding: '16px', borderRadius: '12px', border: '1px solid #334155', marginBottom: '20px' }}>
+            <h4 style={{ fontSize: '14px', color: '#60a5fa', margin: '0 0 12px 0' }}>✨ הגדרת מטרה לחיסכון:</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#94a3b8', marginBottom: '6px' }}>מה המטרה?</label>
+                <input 
+                  type="text" 
+                  value={savingsGoalName} 
+                  onChange={(e) => setSavingsGoalName(e.target.value)} 
+                  placeholder="למשל: טיול לחו״ל, אוטו חדש..."
+                  style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '8px', border: '1px solid #334155', background: '#1e293b', color: 'white', boxSizing: 'border-box', outline: 'none' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#94a3b8', marginBottom: '6px' }}>סכום היעד (₪):</label>
+                <input 
+                  type="number" 
+                  value={savingsGoalAmount} 
+                  onChange={(e) => setSavingsGoalAmount(Number(e.target.value))} 
+                  style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '8px', border: '1px solid #334155', background: '#1e293b', color: 'white', boxSizing: 'border-box', outline: 'none' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* מסגרת כללית ושכר שעתי */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px', background: '#0f172a', padding: '16px', borderRadius: '12px', border: '1px solid #334155' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#94a3b8', marginBottom: '6px' }}>מסגרת תקציב כללית (₪):</label>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#94a3b8', marginBottom: '6px' }}>מסגרת תקציב כללית חודשית (₪):</label>
               <input 
                 type="number" 
                 value={monthlyBudgetLimit} 
@@ -430,11 +456,11 @@ export default function App() {
               />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#94a3b8', marginBottom: '6px' }}>יעד חיסכון עתידי (₪):</label>
+              <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#94a3b8', marginBottom: '6px' }}>שכר שעתי משוער (לחישוב שעות עבודה):</label>
               <input 
                 type="number" 
-                value={savingsGoal} 
-                onChange={(e) => setSavingsGoal(Number(e.target.value))} 
+                value={hourlyWage} 
+                onChange={(e) => setHourlyWage(Number(e.target.value))} 
                 style={{ width: '100%', padding: '10px', fontSize: '14px', borderRadius: '8px', border: '1px solid #334155', background: '#1e293b', color: 'white', boxSizing: 'border-box', outline: 'none' }}
               />
             </div>
@@ -462,6 +488,51 @@ export default function App() {
               )
             })}
           </div>
+        </div>
+      )}
+
+      {/* ================= 4. כלים מתקדמים (Tools & Insights) ================= */}
+      {activeTab === 'tools' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
+          {/* רדאר מנויים רדומים */}
+          <div style={{ background: '#1e293b', padding: '22px', borderRadius: '16px', border: '1px solid #334155' }}>
+            <h3 style={{ fontSize: '16px', color: '#f8fafc', margin: '0 0 8px 0' }}>📡 רדאר מנויים והוצאות קבועות</h3>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 16px 0' }}>מציג את כל ההוצאות שסימנת כ"קבועות / הוראת קבע" החודש, וכמה הן עולות לך בשנה.</p>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+              <div style={{ background: '#0f172a', padding: '14px', borderRadius: '12px', border: '1px solid #334155', textAlign: 'center' }}>
+                <span style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>סך מנויים בחודש</span>
+                <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#f59e0b' }}>₪{totalRecurringMonthly.toLocaleString()}</span>
+              </div>
+              <div style={{ background: '#0f172a', padding: '14px', borderRadius: '12px', border: '1px solid #334155', textAlign: 'center' }}>
+                <span style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>עלות שנתית מצטברת</span>
+                <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444' }}>₪{totalRecurringYearly.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {recurringExpenses.length === 0 ? (
+              <p style={{ color: '#64748b', fontSize: '13px', textAlign: 'center', margin: 0 }}>אין מנויים או הוצאות קבועות רשומות בחודש זה. סמן תנועות כ"קבוע 🔄" בלשונית התנועות כדי לראות אותן כאן.</p>
+            ) : (
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {recurringExpenses.map(item => (
+                  <li key={item.id} style={{ background: '#0f172a', padding: '10px 14px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                    <span style={{ color: '#f8fafc', fontWeight: '500' }}>{item.title}</span>
+                    <span style={{ color: '#ef4444', fontWeight: 'bold' }}>₪{Math.abs(Number(item.amount)).toLocaleString()} / חודש</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* מחשבון שעות עבודה פסיכולוגי */}
+          <div style={{ background: '#1e293b', padding: '22px', borderRadius: '16px', border: '1px solid #334155' }}>
+            <h3 style={{ fontSize: '16px', color: '#f8fafc', margin: '0 0 8px 0' }}>⏳ מחשבון פרספקטיבה (שעות עבודה)</h3>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 14px 0' }}>
+              לפי שכר של <b>₪{hourlyWage} לשעה</b> שהגדרת, כל הוצאה מתורגמת מיד לזמן החיים שלך שנדרש כדי לשלם עליה. ככה מקבלים החלטות צרכניות חכמות באמת!
+            </p>
+          </div>
+
         </div>
       )}
 
