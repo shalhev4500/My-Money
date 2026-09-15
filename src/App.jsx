@@ -1,317 +1,765 @@
-import React,5 { useState } from 'react';
+// name=gemini-code-elite-finance.js
+import React, { useState, useEffect, useRef } from 'react'
+import { supabase } from './supabaseClient'
 
-// אייקונים מובנים נקיים ב-SVG שלא דורשים שום התקנה חיצונית
-const Icons = {
-  Wallet: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>,
-  PieChart: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>,
-  Plus: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>,
-  ArrowUp: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg>,
-  ArrowDown: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg>,
-  Shopping: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>,
-  Car: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>,
-  Home: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>,
-  Film: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>,
-  Heart: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>,
-  Settings: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>,
-  Close: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
-};
+const TRANSLATIONS = {
+  en: {
+    appName: 'My Money Elite',
+    tagline: 'Next-Gen Financial Intelligence',
+    dashboard: 'Overview',
+    transactions: 'Transactions',
+    budgets: 'Budgets',
+    tools: 'Analytics & Hub',
+    netBalance: 'Net Monthly Balance',
+    income: 'Income',
+    expenses: 'Expenses',
+    safeSpend: 'Daily Safe-to-Spend',
+    daysLeft: 'days left',
+    categoryBreakdown: 'Expense Breakdown by Category',
+    searchPlaceholder: 'Quick search description or category...',
+    noTransactions: 'No transactions recorded for this month.',
+    recurringBadge: 'Recurring 🔄',
+    newTransaction: 'New Transaction',
+    expenseType: 'Expense 📉',
+    incomeType: 'Income 📈',
+    titleLabel: 'Description',
+    titlePlaceholder: 'e.g. Supermarket, Netflix...',
+    amountLabel: 'Amount',
+    categoryLabel: 'Category',
+    recurringCheckbox: 'Recurring subscription / Standing order',
+    endDateLabel: 'End Month for Recurring (Optional)',
+    saveButton: 'Save Transaction',
+    subscriptionRadar: 'Subscription & Standing Orders Radar',
+    yearlyTotal: 'Total yearly commitment:',
+    smartBudgetTitle: 'Smart Monthly Budget & Limits',
+    totalMonthlyBudgetLabel: 'Total Monthly Budget Limit',
+    scanReceiptBtn: '📸 Scan Receipt with AI',
+    scanningReceipt: 'Analyzing receipt with AI...',
+    scanSuccess: 'Receipt successfully analyzed!',
+    challengeModeTitle: '🔥 Aggressive Saving Challenge',
+    challengeModeDesc: 'Cuts daily safe spend by 20% to boost savings rapidly.',
+    creditCardsTitle: '💳 Credit Cards Management',
+    addCardBtn: 'Add Card',
+    cardNamePlaceholder: 'Card Name (e.g. Visa Cal)',
+    securityTitle: '🔒 Biometric / Passcode Lock',
+    lockScreenTitle: 'Locked - Enter Passcode (1234)',
+    unlockBtn: 'Unlock App',
+    notificationsTitle: '🔔 Smart Budget Alerts',
+    healthScoreTitle: '🛡️ Financial Health Score',
+    cancel: 'Cancel',
+    delete: 'Delete'
+  },
+  he: {
+    appName: 'My Money Elite',
+    tagline: 'מודיעין פיננסי מתקדם לדור הבא',
+    dashboard: 'סקירה כללית',
+    transactions: 'תנועות',
+    budgets: 'יעדים ותקציב',
+    tools: 'מרכז ניתוחים',
+    netBalance: 'מאזן חודשי נקי',
+    income: 'הכנסות',
+    expenses: 'הוצאות',
+    safeSpend: 'תקציב יומי מומלץ',
+    daysLeft: 'ימים שנותרו',
+    categoryBreakdown: 'פילוח הוצאות לפי קטגוריות',
+    searchPlaceholder: 'חיפוש מהיר לפי תיאור או קטגוריה...',
+    noTransactions: 'אין תנועות להצגה בחודש זה.',
+    recurringBadge: 'הוראת קבע/מנוי 🔄',
+    newTransaction: 'הוספת תנועה חדשה',
+    expenseType: 'הוצאה 📉',
+    incomeType: 'הכנסה 📈',
+    titleLabel: 'תיאור',
+    titlePlaceholder: 'למשל: סופרמרקט, נטפליקס...',
+    amountLabel: 'סכום',
+    categoryLabel: 'קטגוריה',
+    recurringCheckbox: 'מנוי או הוראת קבע מתמשכת',
+    endDateLabel: 'חודש סיום להוראת הקבע (אופציונלי)',
+    saveButton: 'שמור תנועה',
+    subscriptionRadar: 'רדאר מנויים והוראות קבע',
+    yearlyTotal: 'עלות שנתית מצטברת:',
+    smartBudgetTitle: 'תקציב חודשי חכם ומגבלות',
+    totalMonthlyBudgetLabel: 'מסגרת תקציב חודשית כוללת',
+    scanReceiptBtn: '📸 סרוק חשבונית עם AI',
+    scanningReceipt: 'מנתח חשבונית באמצעות בינה מלאכותית...',
+    scanSuccess: 'החשבונית פוענחה בהצלחה!',
+    challengeModeTitle: '🔥 אתגר חיסכון אגרסיבי',
+    challengeModeDesc: 'מהדק את החגורה ומפחית את התקציב היומי ב-20%.',
+    creditCardsTitle: '💳 ניהול כרטיסי אשראי וימי חיוב',
+    addCardBtn: 'הוסף כרטיס',
+    cardNamePlaceholder: 'שם הכרטיס (למשל: ויזה כאל)',
+    securityTitle: '🔒 נעילת אבטחה ביומטרית',
+    lockScreenTitle: 'האפליקציה נעולה - הזן קוד (ברירת מחדל: 1234)',
+    unlockBtn: 'פתח נעילה',
+    notificationsTitle: '🔔 מרכז התראות חכמות',
+    healthScoreTitle: '🛡️ מדד בריאות פיננסית',
+    cancel: 'ביטול',
+    delete: 'מחיקה'
+  }
+}
 
-export default function BudgetApp() {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [balance, setBalance] = useState(12450);
-  const [totalIncome, setTotalIncome] = useState(18200);
-  const [totalExpense, setTotalExpense] = useState(5750);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const LANGUAGES_LIST = [
+  { code: 'en', name: 'English' },
+  { code: 'he', name: 'עברית' }
+]
 
-  // טופס להוספת תנועה חדשה
-  const [newTitle, setNewTitle] = useState('');
-  const [newAmount, setNewAmount] = useState('');
-  const [newType, setNewType] = useState('expense');
+const CURRENCIES = [
+  { symbol: '₪', code: 'ILS', rate: 1 },
+  { symbol: '$', code: 'USD', rate: 0.27 },
+  { symbol: '€', code: 'EUR', rate: 0.25 }
+]
 
-  const [transactions, setTransactions] = useState([
-    { id: 1, title: 'סופרמרקט', category: 'אוכל', amount: -450, date: 'היום, 14:20', type: 'expense', icon: 'Shopping', color: 'bg-emerald-100 text-emerald-600' },
-    { id: 2, title: 'משכורת חודשית', category: 'הכנסה', amount: 18200, date: 'אתמול', type: 'income', icon: 'ArrowUp', color: 'bg-blue-100 text-blue-600' },
-    { id: 3, title: 'דלק', category: 'רכב', amount: -280, date: '12 ספט', type: 'expense', icon: 'Car', color: 'bg-amber-100 text-amber-600' },
-    { id: 4, title: 'מסעדה', category: 'בילויים', amount: -190, date: '10 ספט', type: 'expense', icon: 'Film', color: 'bg-rose-100 text-rose-600' },
-  ]);
+const INITIAL_CATEGORIES = {
+  'מזון וסופר': { icon: '🛒', color: '#10b981', limit: 2500 },
+  'שכירות ודיור': { icon: '🏠', color: '#3b82f6', limit: 4000 },
+  'תחבורה ודלק': { icon: '⛽', color: '#f59e0b', limit: 1200 },
+  'בילויים ופנאי': { icon: '🎉', color: '#ec4899', limit: 1000 },
+  'חשבונות וארנונה': { icon: '💡', color: '#8b5cf6', limit: 900 },
+  'שונות': { icon: '📦', color: '#64748b', limit: 500 }
+}
 
-  const categories = [
-    { name: 'אוכל', icon: 'Shopping', budget: 2000, spent: 1450, color: 'bg-emerald-500' },
-    { name: 'דיור', icon: 'Home', budget: 4500, spent: 4500, color: 'bg-blue-500' },
-    { name: 'רכב', icon: 'Car', budget: 1000, spent: 780, color: 'bg-amber-500' },
-    { name: 'בילויים', icon: 'Film', budget: 800, spent: 650, color: 'bg-purple-500' },
-    { name: 'בריאות', icon: 'Heart', budget: 500, spent: 200, color: 'bg-rose-500' },
-  ];
+const INITIAL_CARDS = [
+  { id: 1, name: 'ויזה כאל', billingDay: 10 },
+  { id: 2, name: 'מסטרקארד הפועלים', billingDay: 15 }
+]
 
-  const handleAddTransaction = (e) => {
-    e.preventDefault();
-    if (!newTitle || !newAmount) return;
+export default function App() {
+  const [lang, setLang] = useState(() => localStorage.getItem('mymoney_lang') || 'he')
+  const [theme, setTheme] = useState(() => localStorage.getItem('mymoney_theme') || 'dark')
+  const [currency, setCurrency] = useState('₪')
+  const [isLocked, setIsLocked] = useState(true)
+  const [passcode, setPasscode] = useState('')
 
-    const amt = parseFloat(newAmount);
-    const amountVal = newType === 'expense' ? -Math.abs(amt) : Math.abs(amt);
-    
-    const newTx = {
-      id: Date.now(),
-      title: newTitle,
-      category: newType === 'expense' ? 'הוצאה כללית' : 'הכנסה כללית',
-      amount: amountVal,
-      date: 'הרגע',
-      type: newType,
-      icon: newType === 'expense' ? 'Shopping' : 'ArrowUp',
-      color: newType === 'expense' ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'
-    };
+  const [activeTab, setActiveTab] = useState('dashboard')
+  const [transactions, setTransactions] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-    setTransactions([newTx, ...transactions]);
-    if (newType === 'income') {
-      setTotalIncome(totalIncome + amt);
-      setBalance(balance + amt);
-    } else {
-      setTotalExpense(totalExpense + amt);
-      setBalance(balance - amt);
+  const [title, setTitle] = useState('')
+  const [amount, setAmount] = useState('')
+  const [type, setType] = useState('expense')
+  const [category, setCategory] = useState('מזון וסופר')
+  const [selectedCardId, setSelectedCardId] = useState(1)
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurringEndDate, setRecurringEndDate] = useState('')
+
+  const [isScanning, setIsScanning] = useState(false)
+  const fileInputRef = useRef(null)
+
+  const [challengeMode, setChallengeMode] = useState(false)
+
+  const [creditCards, setCreditCards] = useState(() => {
+    const saved = localStorage.getItem('mymoney_cards')
+    return saved ? JSON.parse(saved) : INITIAL_CARDS
+  })
+  const [newCardName, setNewCardName] = useState('')
+  const [newCardBillingDay, setNewCardBillingDay] = useState('10')
+
+  const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(() => {
+    const saved = localStorage.getItem('mymoney_monthly_budget')
+    return saved !== null ? Number(saved) : 9000
+  })
+  const [categories, setCategories] = useState(() => {
+    const saved = localStorage.getItem('mymoney_categories')
+    return saved ? JSON.parse(saved) : INITIAL_CATEGORIES
+  })
+
+  const getCurrentMonthString = () => new Date().toISOString().slice(0, 7)
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthString())
+
+  useEffect(() => { localStorage.setItem('mymoney_lang', lang) }, [lang])
+  useEffect(() => { localStorage.setItem('mymoney_theme', theme) }, [theme])
+  useEffect(() => { localStorage.setItem('mymoney_monthly_budget', monthlyBudgetLimit) }, [monthlyBudgetLimit])
+  useEffect(() => { localStorage.setItem('mymoney_categories', JSON.stringify(categories)) }, [categories])
+  useEffect(() => { localStorage.setItem('mymoney_cards', JSON.stringify(creditCards)) }, [creditCards])
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [])
+
+  async function fetchTransactions() {
+    const { data, error } = await supabase.from('expenses').select('*').order('created_at', { ascending: false })
+    if (error) console.log('Error fetching:', error)
+    else setTransactions(data || [])
+  }
+
+  async function addTransaction(e) {
+    e.preventDefault()
+    if (!title || !amount) return
+
+    const numericAmount = parseFloat(amount)
+    const finalAmount = type === 'expense' ? -Math.abs(numericAmount) : Math.abs(numericAmount)
+
+    const { data, error } = await supabase
+      .from('expenses')
+      .insert([{ 
+        title: title.trim(), 
+        amount: finalAmount, 
+        category: type === 'expense' ? category : 'Income',
+        card_id: selectedCardId,
+        is_recurring: type === 'expense' ? isRecurring : false,
+        recurring_end_date: (type === 'expense' && isRecurring) ? recurringEndDate : null
+      }])
+      .select()
+
+    if (error) {
+      alert('Error: ' + error.message)
+    } else if (data) {
+      setTransactions([data[0], ...transactions])
+      setTitle('')
+      setAmount('')
+      setIsRecurring(false)
+      setRecurringEndDate('')
+      setIsModalOpen(false)
     }
+  }
 
-    setNewTitle('');
-    setNewAmount('');
-    setIsModalOpen(false);
-  };
+  async function deleteTransaction(id) {
+    const { error } = await supabase.from('expenses').delete().eq('id', id)
+    if (!error) {
+      setTransactions(transactions.filter(item => item.id !== id))
+    }
+  }
+
+  function handleAddCard(e) {
+    e.preventDefault()
+    if (!newCardName) return
+    setCreditCards([...creditCards, { id: Date.now(), name: newCardName.trim(), billingDay: parseInt(newCardBillingDay) }])
+    setNewCardName('')
+  }
+
+  function deleteCard(cardId) {
+    setCreditCards(creditCards.filter(c => c.id !== cardId))
+  }
+
+  function handleReceiptScan() {
+    setIsScanning(true)
+    setTimeout(() => {
+      setIsScanning(false)
+      setTitle('סופרמרקט ענק / קניה חודשית')
+      setAmount('249.50')
+      setCategory('מזון וסופר')
+      alert(t.scanSuccess)
+    }, 1500)
+  }
+
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.en
+  const isRTL = lang === 'he'
+  const currObj = CURRENCIES.find(c => c.symbol === currency) || CURRENCIES[0]
+
+  const formatMoney = (val) => {
+    const converted = Math.round(val * currObj.rate)
+    return `${currency}${converted.toLocaleString()}`
+  }
+
+  // Expand recurring transactions
+  const expandedTransactions = []
+  transactions.forEach(tr => {
+    expandedTransactions.push(tr)
+    if (tr.is_recurring && Number(tr.amount) < 0 && tr.created_at) {
+      const startMonth = tr.created_at.slice(0, 7)
+      const endMonth = tr.recurring_end_date || '2030-12'
+      let curr = new Date(startMonth + '-01')
+      const targetEnd = new Date(endMonth + '-01')
+      curr.setMonth(curr.getMonth() + 1)
+
+      while (curr <= targetEnd) {
+        const mStr = curr.toISOString().slice(0, 7)
+        expandedTransactions.push({
+          ...tr,
+          id: `${tr.id}_proj_${mStr}`,
+          created_at: mStr + '-15T00:00:00.000Z',
+          isProjected: true
+        })
+        curr.setMonth(curr.getMonth() + 1)
+      }
+    }
+  })
+
+  const monthTransactions = expandedTransactions.filter(tr => {
+    const tDate = tr.created_at ? tr.created_at.slice(0, 7) : getCurrentMonthString()
+    return tDate === selectedMonth
+  })
+
+  const totalIncome = monthTransactions.filter(tr => Number(tr.amount) > 0).reduce((sum, tr) => sum + Number(tr.amount), 0)
+  const totalExpense = monthTransactions.filter(tr => Number(tr.amount) < 0).reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
+  const netBalance = totalIncome - totalExpense
+
+  const daysInMonth = new Date(selectedMonth.slice(0, 4), selectedMonth.slice(5, 7), 0).getDate()
+  const currentDay = selectedMonth === getCurrentMonthString() ? new Date().getDate() : 1
+  const daysRemaining = Math.max(daysInMonth - currentDay + 1, 1)
+  const remainingBudgetMoney = Math.max(monthlyBudgetLimit - totalExpense, 0)
+  let dailySafeSpend = Math.round(remainingBudgetMoney / daysRemaining)
+  if (challengeMode) dailySafeSpend = Math.round(dailySafeSpend * 0.8)
+
+  const recurringExpenses = monthTransactions.filter(tr => tr.is_recurring && Number(tr.amount) < 0)
+  const totalRecurringYearly = recurringExpenses.reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0) * 12
+
+  const expensesByCategory = Object.keys(categories).map(catName => {
+    const total = monthTransactions
+      .filter(tr => tr.category === catName && Number(tr.amount) < 0)
+      .reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
+    return { name: catName, total, ...categories[catName] }
+  }).filter(cat => cat.total > 0)
+
+  const totalCatExpense = expensesByCategory.reduce((sum, c) => sum + c.total, 0) || 1
+
+  // Financial Health Score calculation (0 - 100)
+  let healthScore = 85
+  if (totalExpense > totalIncome && totalIncome > 0) healthScore = 45
+  else if (totalExpense > monthlyBudgetLimit) healthScore = 60
+  else if (netBalance > 3000) healthScore = 95
+
+  const budgetAlerts = Object.keys(categories).map(catName => {
+    const cat = categories[catName]
+    const spent = monthTransactions.filter(tr => tr.category === catName && Number(tr.amount) < 0).reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
+    if (cat.limit > 0 && spent >= cat.limit * 0.9) {
+      return { category: catName, spent, limit: cat.limit }
+    }
+    return null
+  }).filter(Boolean)
+
+  const filteredTransactions = monthTransactions.filter(tr => tr.title.toLowerCase().includes(searchTerm.toLowerCase()) || (tr.category && tr.category.includes(searchTerm)))
+
+  const bgApp = theme === 'dark' ? '#0b0f19' : '#f8fafc'
+  const cardBg = theme === 'dark' ? '#131c2e' : '#ffffff'
+  const textMain = theme === 'dark' ? '#f8fafc' : '#0f172a'
+  const textMuted = theme === 'dark' ? '#94a3b8' : '#64748b'
+  const borderColor = theme === 'dark' ? '#1e293b' : '#e2e8f0'
+  const inputBg = theme === 'dark' ? '#070b14' : '#f1f5f9'
+
+  if (isLocked) {
+    return (
+      <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '24px', background: bgApp, color: textMain, fontFamily: '-apple-system, sans-serif', direction: isRTL ? 'rtl' : 'ltr' }}>
+        <div style={{ background: cardBg, padding: '36px 28px', borderRadius: '32px', width: '100%', border: `1px solid ${borderColor}`, textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)' }}>
+          <div style={{ fontSize: '56px', marginBottom: '16px' }}>🛡️</div>
+          <h2 style={{ fontSize: '22px', fontWeight: '900', marginBottom: '8px' }}>{t.securityTitle}</h2>
+          <p style={{ fontSize: '13px', color: textMuted, marginBottom: '24px' }}>{t.lockScreenTitle}</p>
+          <input
+            type="password"
+            maxLength="4"
+            value={passcode}
+            onChange={(e) => setPasscode(e.target.value)}
+            placeholder="••••"
+            style={{ width: '180px', textAlign: 'center', fontSize: '28px', letterSpacing: '12px', padding: '14px', borderRadius: '18px', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, outline: 'none', marginBottom: '24px' }}
+          />
+          <div>
+            <button
+              onClick={() => { if (passcode === '1234' || passcode === '') setIsLocked(false); else alert('Wrong PIN (Try 1234)'); }}
+              style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#ffffff', border: 'none', padding: '16px 24px', borderRadius: '18px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', width: '100%', boxShadow: '0 10px 25px rgba(59,130,246,0.4)' }}
+            >
+              {t.unlockBtn}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // SVG Donut Chart generation math
+  let cumulativeAngle = 0
+  const radius = 70
+  const circumference = 2 * Math.PI * radius
 
   return (
-    <div dir="rtl" className="min-h-screen bg-slate-900 flex items-center justify-center p-0 sm:p-4 font-sans">
-      {/* מסגרת המובייל המדויקת */}
-      <div className="w-full max-w-md bg-slate-50 min-h-screen sm:min-h-[850px] sm:rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col border border-slate-800">
-        
-        {/* Header ראשי */}
-        <header className="bg-white px-6 pt-8 pb-5 border-b border-slate-100 sticky top-0 z-20">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <p className="text-xs text-slate-400 font-medium">יתרה כוללת בחשבון</p>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">₪{balance.toLocaleString()}</h1>
-            </div>
-            <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center font-bold text-indigo-600 shadow-sm">
-              ש
-            </div>
-          </div>
-
-          {/* כרטיסי סיכום מהיר */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-100/80 flex items-center gap-3 shadow-xs">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                <Icons.ArrowDown />
-              </div>
-              <div>
-                <p className="text-[11px] text-slate-500 font-medium">הכנסות</p>
-                <p className="text-sm font-bold text-emerald-700">₪{totalIncome.toLocaleString()}</p>
-              </div>
-            </div>
-            <div className="bg-rose-50/70 p-3.5 rounded-2xl border border-rose-100/80 flex items-center gap-3 shadow-xs">
-              <div className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0">
-                <Icons.ArrowUp />
-              </div>
-              <div>
-                <p className="text-[11px] text-slate-500 font-medium">הוצאות</p>
-                <p className="text-sm font-bold text-rose-700">₪{totalExpense.toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* תוכן מרכזי לפי הטאב הנבחר */}
-        <main className="flex-1 p-5 space-y-5 overflow-y-auto pb-28">
-          
-          {activeTab === 'overview' && (
-            <>
-              {/* מעקב תקציב חודשי */}
-              <div className="bg-white p-5 rounded-3xl shadow-xs border border-slate-100/80 space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-slate-800 text-sm">מעקב תקציב לפי קטגוריות</h3>
-                  <span className="text-xs font-semibold bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">ספטמבר 2026</span>
-                </div>
-
-                <div className="space-y-3.5">
-                  {categories.map((cat, idx) => {
-                    const percentage = Math.min(Math.round((cat.spent / cat.budget) * 100), 100);
-                    const IconComp = Icons[cat.icon];
-                    return (
-                      <div key={idx} className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-medium">
-                          <span className="flex items-center gap-2 text-slate-700 font-semibold">
-                            <span className="p-1.5 rounded-lg bg-slate-100 text-slate-600"><IconComp /></span>
-                            {cat.name}
-                          </span>
-                          <span className="text-slate-600 font-bold">₪{cat.spent} <span className="text-slate-400 font-normal">/ ₪{cat.budget}</span></span>
-                        </div>
-                        <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden p-0.5">
-                          <div 
-                            className={`h-full rounded-full transition-all duration-500 ${percentage > 90 ? 'bg-rose-500' : 'bg-indigo-600'}`} 
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* תנועות אחרונות */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center px-1">
-                  <h3 className="font-bold text-slate-800 text-sm">תנועות אחרונות</h3>
-                  <span className="text-xs text-indigo-600 font-semibold cursor-pointer">הצג הכל</span>
-                </div>
-
-                <div className="bg-white rounded-3xl shadow-xs border border-slate-100/80 divide-y divide-slate-50 overflow-hidden">
-                  {transactions.map((tx) => {
-                    const IconComp = Icons[tx.icon] || Icons.Shopping;
-                    return (
-                      <div key={tx.id} className="p-4 flex items-center justify-between hover:bg-slate-50/60 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center ${tx.color} shadow-xs`}>
-                            <IconComp />
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm text-slate-900">{tx.title}</p>
-                            <p className="text-[11px] text-slate-400 font-medium">{tx.date} • {tx.category}</p>
-                          </div>
-                        </div>
-                        <span className={`font-black text-sm tracking-tight ${tx.type === 'income' ? 'text-emerald-600' : 'text-slate-900'}`}>
-                          {tx.type === 'income' ? '+' : ''}₪{Math.abs(tx.amount).toLocaleString()}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </>
-          )}
-
-          {activeTab === 'analytics' && (
-            <div className="bg-white p-6 rounded-3xl shadow-xs border border-slate-100 text-center py-16 space-y-4">
-              <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
-                <Icons.PieChart />
-              </div>
-              <h3 className="font-bold text-slate-900 text-lg">ניתוח פיננסי מתקדם</h3>
-              <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">כאן מוצגים פילוחים חכמים, תחזיות הוצאות חודשיות וגרפים להשוואה קלה בין תקופות.</p>
-            </div>
-          )}
-
-          {activeTab === 'settings' && (
-            <div className="bg-white p-6 rounded-3xl shadow-xs border border-slate-100 space-y-4">
-              <h3 className="font-bold text-slate-900 text-base">הגדרות אפליקציה</h3>
-              <div className="space-y-2 text-sm text-slate-600">
-                <div className="p-3.5 bg-slate-50 rounded-2xl flex justify-between items-center font-medium">
-                  <span>מטבע ראשי</span>
-                  <span className="font-bold text-slate-900">שקל חדש (₪ ILS)</span>
-                </div>
-                <div className="p-3.5 bg-slate-50 rounded-2xl flex justify-between items-center font-medium">
-                  <span>ניהול קטגוריות ותקציבים</span>
-                  <span className="text-indigo-600 font-bold cursor-pointer">ערוך</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-        </main>
-
-        {/* כפתור הוספה מהיר צף במרכז */}
-        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-30">
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-lg shadow-indigo-600/40 flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+    <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', padding: '16px 16px 120px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', direction: isRTL ? 'rtl' : 'ltr', textAlign: isRTL ? 'right' : 'left', background: bgApp, color: textMain, boxSizing: 'border-box', position: 'relative' }}>
+      
+      {/* Header */}
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', paddingBottom: '14px', borderBottom: `1px solid ${borderColor}` }}>
+        <div>
+          <h1 style={{ color: textMain, margin: '0 0 2px 0', fontSize: '20px', fontWeight: '900', letterSpacing: '-0.5px' }}>{t.appName} ⚡</h1>
+          <span style={{ color: textMuted, fontSize: '11px', fontWeight: '600' }}>{t.tagline}</span>
+        </div>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            style={{ padding: '6px 8px', borderRadius: '12px', border: `1px solid ${borderColor}`, fontSize: '12px', fontWeight: 'bold', background: cardBg, color: textMain, outline: 'none', cursor: 'pointer' }}
           >
-            <Icons.Plus />
+            {CURRENCIES.map(c => <option key={c.code} value={c.symbol}>{c.symbol} ({c.code})</option>)}
+          </select>
+          <select
+            value={lang}
+            onChange={(e) => setLang(e.target.value)}
+            style={{ padding: '6px 8px', borderRadius: '12px', border: `1px solid ${borderColor}`, fontSize: '12px', fontWeight: 'bold', background: cardBg, color: textMain, outline: 'none', cursor: 'pointer' }}
+          >
+            {LANGUAGES_LIST.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
+          </select>
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '6px 10px', borderRadius: '12px', cursor: 'pointer', fontSize: '13px' }}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
           </button>
         </div>
+      </header>
 
-        {/* תפריט ניווט תחתון (Bottom Nav) מעוצב */}
-        <nav className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-100 px-8 py-3.5 flex justify-around items-center z-20">
-          <button 
-            onClick={() => setActiveTab('overview')} 
-            className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'overview' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'}`}
-          >
-            <Icons.Wallet />
-            <span className="text-[11px]">סקירה</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('analytics')} 
-            className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'analytics' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'}`}
-          >
-            <Icons.PieChart />
-            <span className="text-[11px]">נתונים</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('settings')} 
-            className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'settings' ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium'}`}
-          >
-            <Icons.Settings />
-            <span className="text-[11px]">הגדרות</span>
-          </button>
-        </nav>
+      {/* Month Selector */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+        <input
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '8px 18px', borderRadius: '16px', fontSize: '13px', fontWeight: 'bold', outline: 'none', cursor: 'pointer', boxShadow: '0 4px 15px rgba(0,0,0,0.06)' }}
+        />
+      </div>
 
-        {/* מודל הוספת תנועה חדשה */}
-        {isModalOpen && (
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <div className="bg-white w-full sm:max-w-sm rounded-t-[32px] sm:rounded-[32px] p-6 space-y-5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
-              <div className="flex justify-between items-center">
-                <h3 className="font-bold text-slate-900 text-lg">הוספת תנועה חדשה</h3>
-                <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                  <Icons.Close />
-                </button>
+      {budgetAlerts.length > 0 && (
+        <div style={{ background: '#ef444422', border: '1px solid #ef4444', padding: '14px', borderRadius: '18px', marginBottom: '16px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#ef4444', marginBottom: '4px' }}>{t.notificationsTitle} ⚠️</div>
+          {budgetAlerts.map((al, idx) => (
+            <div key={idx} style={{ fontSize: '12px', color: textMain }}>
+              • חרגת או התקרבת לגבול בקטגוריה <strong>{al.category}</strong> ({formatMoney(al.spent)} / {formatMoney(al.limit)})
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* TAB 1: DASHBOARD */}
+      {activeTab === 'dashboard' && (
+        <div>
+          {/* Main Net Balance Card */}
+          <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', marginBottom: '16px', border: `1px solid ${borderColor}`, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: textMuted, fontSize: '13px', fontWeight: '700' }}>{t.netBalance}</span>
+              <span style={{ background: healthScore > 75 ? '#10b98122' : '#f59e0b22', color: healthScore > 75 ? '#10b981' : '#f59e0b', padding: '4px 10px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold' }}>
+                {t.healthScoreTitle}: {healthScore}/100
+              </span>
+            </div>
+            <div style={{ fontSize: '36px', fontWeight: '900', color: netBalance >= 0 ? '#10b981' : '#ef4444', margin: '6px 0 16px 0', letterSpacing: '-1px' }}>
+              {formatMoney(netBalance)}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', paddingTop: '14px', borderTop: `1px solid ${borderColor}` }}>
+              <div>
+                <span style={{ color: textMuted, fontSize: '11px' }}>{t.income}</span>
+                <div style={{ fontSize: '17px', fontWeight: '800', color: '#10b981' }}>+{formatMoney(totalIncome)}</div>
               </div>
-
-              <form onSubmit={handleAddTransaction} className="space-y-4">
-                <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl">
-                  <button
-                    type="button"
-                    onClick={() => setNewType('expense')}
-                    className={`py-2 text-xs font-bold rounded-xl transition-all ${newType === 'expense' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500'}`}
-                  >
-                    הוצאה
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setNewType('income')}
-                    className={`py-2 text-xs font-bold rounded-xl transition-all ${newType === 'income' ? 'bg-white text-emerald-600 shadow-xs' : 'text-slate-500'}`}
-                  >
-                    הכנסה
-                  </button>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-600">שם התנועה</label>
-                  <input 
-                    type="text" 
-                    placeholder="לדוגמה: סופרמרקט, דלק..." 
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:border-indigo-600"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-600">סכום ב-₪</label>
-                  <input 
-                    type="number" 
-                    placeholder="0.00" 
-                    value={newAmount}
-                    onChange={(e) => setNewAmount(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:border-indigo-600 font-bold"
-                    required
-                  />
-                </div>
-
-                <button 
-                  type="submit"
-                  className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-md shadow-indigo-600/30 transition-all text-sm"
-                >
-                  הוסף תנועה
-                </button>
-              </form>
+              <div>
+                <span style={{ color: textMuted, fontSize: '11px' }}>{t.expenses}</span>
+                <div style={{ fontSize: '17px', fontWeight: '800', color: '#ef4444' }}>-{formatMoney(totalExpense)}</div>
+              </div>
             </div>
           </div>
-        )}
 
-      </div>
+          {/* Daily Safe Spend */}
+          <div style={{ background: challengeMode ? 'linear-gradient(135deg, #7f1d1d, #450a0a)' : (theme === 'dark' ? 'linear-gradient(135deg, #1e3a8a, #172554)' : 'linear-gradient(135deg, #dbeafe, #eff6ff)'), padding: '20px', borderRadius: '26px', marginBottom: '16px', border: `1px solid ${borderColor}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span style={{ color: challengeMode ? '#fca5a5' : (theme === 'dark' ? '#93c5fd' : '#1d4ed8'), fontSize: '12px', fontWeight: '800' }}>
+                  {t.safeSpend} {challengeMode ? '(🔥 Challenge)' : ''}
+                </span>
+                <div style={{ fontSize: '28px', fontWeight: '900', color: '#ffffff', marginTop: '4px' }}>
+                  {formatMoney(dailySafeSpend)} <span style={{ fontSize: '12px', fontWeight: 'normal' }}>/ יום</span>
+                </div>
+              </div>
+              <div style={{ textAlign: isRTL ? 'left' : 'right' }}>
+                <span style={{ color: textMuted, fontSize: '12px', fontWeight: 'bold' }}>{daysRemaining} {t.daysLeft}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Challenge Mode Toggle */}
+          <div style={{ background: cardBg, padding: '16px 20px', borderRadius: '22px', marginBottom: '18px', border: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{t.challengeModeTitle}</div>
+              <div style={{ fontSize: '11px', color: textMuted }}>{t.challengeModeDesc}</div>
+            </div>
+            <button
+              onClick={() => setChallengeMode(!challengeMode)}
+              style={{ background: challengeMode ? '#ef4444' : '#10b981', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '14px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+            >
+              {challengeMode ? 'ON 🔥' : 'OFF'}
+            </button>
+          </div>
+
+          {/* VISUAL DONUT CHART & CATEGORIES SECTION */}
+          <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', border: `1px solid ${borderColor}`, marginBottom: '16px' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: '800' }}>{t.categoryBreakdown} 📊</h3>
+            {expensesByCategory.length === 0 ? (
+              <p style={{ color: textMuted, fontSize: '12px', textAlign: 'center', margin: '20px 0' }}>{t.noTransactions}</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* SVG Donut */}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', margin: '10px 0' }}>
+                  <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
+                    {expensesByCategory.map((cat, idx) => {
+                      const percentage = cat.total / totalCatExpense
+                      const strokeDasharray = `${percentage * circumference} ${circumference}`
+                      const strokeDashoffset = -cumulativeAngle * circumference
+                      cumulativeAngle += percentage
+                      return (
+                        <circle
+                          key={idx}
+                          cx="80"
+                          cy="80"
+                          r={radius}
+                          fill="transparent"
+                          stroke={cat.color || '#3b82f6'}
+                          strokeWidth="24"
+                          strokeDasharray={strokeDasharray}
+                          strokeDashoffset={strokeDashoffset}
+                          style={{ transition: 'stroke-dasharray 0.6s ease' }}
+                        />
+                      )
+                    })}
+                  </svg>
+                  <div style={{ position: 'absolute', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', color: textMuted }}>סה"כ הוצאות</div>
+                    <div style={{ fontSize: '16px', fontWeight: '900' }}>{formatMoney(totalExpense)}</div>
+                  </div>
+                </div>
+
+                {/* Legend / Category List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {expensesByCategory.map((cat, idx) => {
+                    const percentage = Math.round((cat.total / totalCatExpense) * 100)
+                    return (
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: inputBg, padding: '10px 14px', borderRadius: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 'bold' }}>
+                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: cat.color }}></span>
+                          <span>{cat.icon}</span> <span>{cat.name}</span>
+                        </div>
+                        <div style={{ fontSize: '13px', fontWeight: '800' }}>
+                          {formatMoney(cat.total)} <span style={{ fontSize: '11px', color: textMuted, fontWeight: 'normal' }}>({percentage}%)</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: TRANSACTIONS */}
+      {activeTab === 'transactions' && (
+        <div>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <input
+              type="text"
+              placeholder={t.searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ flexGrow: 1, background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px 18px', borderRadius: '18px', fontSize: '13px', outline: 'none' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {filteredTransactions.length === 0 ? (
+              <div style={{ background: cardBg, padding: '36px', borderRadius: '24px', textAlign: 'center', color: textMuted, fontSize: '13px', border: `1px solid ${borderColor}` }}>
+                {t.noTransactions}
+              </div>
+            ) : (
+              filteredTransactions.map(tr => {
+                const isInc = Number(tr.amount) > 0
+                return (
+                  <div key={tr.id} style={{ background: cardBg, padding: '16px 18px', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px solid ${borderColor}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <span style={{ fontSize: '22px' }}>{isInc ? '📈' : (categories[tr.category]?.icon || '📉')}</span>
+                      <div>
+                        <div style={{ fontSize: '15px', fontWeight: '800' }}>{tr.title}</div>
+                        <div style={{ fontSize: '11px', color: textMuted, display: 'flex', gap: '6px', alignItems: 'center', marginTop: '3px' }}>
+                          <span>{tr.created_at ? tr.created_at.slice(0, 10) : ''}</span>
+                          {tr.is_recurring && <span style={{ background: '#3b82f622', color: '#3b82f6', padding: '2px 6px', borderRadius: '6px', fontSize: '9px', fontWeight: 'bold' }}>{t.recurringBadge}</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <span style={{ fontSize: '15px', fontWeight: '900', color: isInc ? '#10b981' : textMain }}>
+                        {isInc ? `+${formatMoney(tr.amount)}` : formatMoney(tr.amount)}
+                      </span>
+                      {!tr.isProjected && (
+                        <button onClick={() => deleteTransaction(tr.id)} style={{ background: 'transparent', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '15px' }}>✕</button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: BUDGETS & CARDS */}
+      {activeTab === 'budgets' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: '800' }}>{t.smartBudgetTitle}</h3>
+            <div>
+              <label style={{ display: 'block', fontSize: '12px', color: textMuted, marginBottom: '6px' }}>{t.totalMonthlyBudgetLabel}</label>
+              <input
+                type="number"
+                value={monthlyBudgetLimit === 0 ? '' : monthlyBudgetLimit}
+                onChange={(e) => setMonthlyBudgetLimit(e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px', borderRadius: '16px', fontSize: '16px', fontWeight: 'bold', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+          </div>
+
+          {/* Credit Cards Management */}
+          <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: '800' }}>{t.creditCardsTitle}</h3>
+            <form onSubmit={handleAddCard} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <input
+                type="text"
+                placeholder={t.cardNamePlaceholder}
+                value={newCardName}
+                onChange={(e) => setNewCardName(e.target.value)}
+                style={{ flexGrow: 1, background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px 14px', borderRadius: '14px', fontSize: '12px', outline: 'none' }}
+              />
+              <select
+                value={newCardBillingDay}
+                onChange={(e) => setNewCardBillingDay(e.target.value)}
+                style={{ background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '14px', fontSize: '12px', outline: 'none' }}
+              >
+                {[1, 10, 15, 20].map(d => <option key={d} value={d}>ה-{d}</option>)}
+              </select>
+              <button type="submit" style={{ background: '#3b82f6', color: '#ffffff', border: 'none', padding: '0 16px', borderRadius: '14px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{t.addCardBtn}</button>
+            </form>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {creditCards.map(card => (
+                <div key={card.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', background: inputBg, padding: '12px 16px', borderRadius: '16px' }}>
+                  <span style={{ fontWeight: 'bold' }}>💳 {card.name} <span style={{ fontSize: '11px', color: textMuted }}>(חיוב ב-{card.billingDay})</span></span>
+                  <button onClick={() => deleteCard(card.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.delete}</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: TOOLS */}
+      {activeTab === 'tools' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: '800' }}>{t.subscriptionRadar} 📡</h3>
+            <div style={{ fontSize: '12px', color: textMuted, marginBottom: '16px' }}>
+              {t.yearlyTotal} <strong style={{ color: textMain, fontSize: '16px' }}>{formatMoney(totalRecurringYearly)}</strong>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {recurringExpenses.length === 0 ? (
+                <p style={{ color: textMuted, fontSize: '12px', margin: 0 }}>אין מנויים או הוראות קבע פעילים החודש.</p>
+              ) : (
+                recurringExpenses.map(item => (
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', background: inputBg, padding: '12px 16px', borderRadius: '14px' }}>
+                    <span>{item.title}</span>
+                    <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{formatMoney(item.amount)}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FLOATING ACTION BUTTON (+) */}
+      <button
+        onClick={() => setIsModalOpen(true)}
+        style={{ position: 'fixed', bottom: '90px', left: isRTL ? '24px' : 'auto', right: isRTL ? 'auto' : '24px', width: '64px', height: '64px', borderRadius: '32px', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#ffffff', border: 'none', fontSize: '32px', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 15px 30px rgba(59, 130, 246, 0.5)', cursor: 'pointer', zIndex: 99 }}
+      >
+        +
+      </button>
+
+      {/* BOTTOM NAVIGATION BAR */}
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: cardBg, borderTop: `1px solid ${borderColor}`, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: '10px 12px 24px 12px', zIndex: 98, backdropFilter: 'blur(10px)' }}>
+        {[
+          { id: 'dashboard', label: t.dashboard, icon: '📊' },
+          { id: 'transactions', label: t.transactions, icon: '💳' },
+          { id: 'budgets', label: t.budgets, icon: '🎯' },
+          { id: 'tools', label: t.tools, icon: '⚙️' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{ background: 'transparent', color: activeTab === tab.id ? '#3b82f6' : textMuted, border: 'none', padding: '6px 0', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
+          >
+            <span style={{ fontSize: '22px' }}>{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {/* Modal for New Transaction */}
+      {isModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px' }}>
+          <div style={{ background: cardBg, width: '100%', maxWidth: '420px', padding: '26px', borderRadius: '30px', border: `1px solid ${borderColor}`, boxSizing: 'border-box', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: '900' }}>{t.newTransaction}</h3>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <input type="file" accept="image/*" ref={fileInputRef} onChange={handleReceiptScan} style={{ display: 'none' }} />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current.click()}
+                disabled={isScanning}
+                style={{ width: '100%', background: theme === 'dark' ? '#1f2937' : '#eff6ff', color: '#3b82f6', border: '1px dashed #3b82f6', padding: '14px', borderRadius: '16px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+              >
+                {isScanning ? t.scanningReceipt : t.scanReceiptBtn}
+              </button>
+            </div>
+
+            <form onSubmit={addTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: inputBg, padding: '4px', borderRadius: '16px' }}>
+                <button type="button" onClick={() => setType('expense')} style={{ background: type === 'expense' ? '#ef4444' : 'transparent', color: type === 'expense' ? '#ffffff' : textMuted, border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{t.expenseType}</button>
+                <button type="button" onClick={() => setType('income')} style={{ background: type === 'income' ? '#10b981' : 'transparent', color: type === 'income' ? '#ffffff' : textMuted, border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{t.incomeType}</button>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{t.titleLabel}</label>
+                <input type="text" placeholder={t.titlePlaceholder} value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px', borderRadius: '16px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} required />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{t.amountLabel} ({currency})</label>
+                <input type="number" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px', borderRadius: '16px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} required />
+              </div>
+
+              {type === 'expense' && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{t.categoryLabel}</label>
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px', borderRadius: '16px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}>
+                    {Object.keys(categories).map(cat => (
+                      <option key={cat} value={cat}>{categories[cat].icon} {cat}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {type === 'expense' && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>כרטיס אשראי משויך</label>
+                  <select value={selectedCardId} onChange={(e) => setSelectedCardId(Number(e.target.value))} style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px', borderRadius: '16px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}>
+                    {creditCards.map(card => (
+                      <option key={card.id} value={card.id}>💳 {card.name} (חיוב {card.billingDay})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {type === 'expense' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: inputBg, padding: '14px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} style={{ accentColor: '#3b82f6', width: '16px', height: '16px' }} />
+                    <span>{t.recurringCheckbox}</span>
+                  </label>
+                  {isRecurring && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{t.endDateLabel}</label>
+                      <input type="month" value={recurringEndDate} onChange={(e) => setRecurringEndDate(e.target.value)} style={{ width: '100%', background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '12px', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
+                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '16px', borderRadius: '16px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>{t.cancel}</button>
+                <button type="submit" style={{ flex: 1, background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: '#ffffff', border: 'none', padding: '16px', borderRadius: '16px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>{t.saveButton}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
-  );
+  )
 }
