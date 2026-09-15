@@ -535,7 +535,7 @@ const TRANSLATIONS = {
     tagline: 'Privé Vermogen & Huishoudfinanciën',
     dashboard: 'Overzicht',
     transactions: 'Transacties',
-    budgets: 'Budgetten & Doelen',
+    budgets: 'Budgets & Doelen',
     tools: 'Hulpmiddelen',
     netBalance: 'Netto Maandbalans',
     income: 'Inkomsten',
@@ -624,7 +624,7 @@ export default function App() {
   const [category, setCategory] = useState('מזון וסופר')
   const [isRecurring, setIsRecurring] = useState(false)
 
-  // ניהול יעדי חיסכון ריבוי יעדים ערוכים מלאים
+  // ניהול יעדי חיסכון
   const [savingsGoals, setSavingsGoals] = useState(() => {
     const saved = localStorage.getItem('mymoney_savings_goals')
     return saved ? JSON.parse(saved) : INITIAL_SAVINGS_GOALS
@@ -635,15 +635,17 @@ export default function App() {
   const [editGoalName, setEditGoalName] = useState('')
   const [editGoalAmount, setEditGoalAmount] = useState('')
 
-  // תקציב חודשי חכם ומגבלות
-  const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(() => Number(localStorage.getItem('mymoney_monthly_budget')) || 9000)
+  // תקציב חודשי חכם ומגבלות (ללא הגבלת מינימום ספרות)
+  const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(() => {
+    const saved = localStorage.getItem('mymoney_monthly_budget')
+    return saved !== null ? Number(saved) : 9000
+  })
   const [categories, setCategories] = useState(() => {
     const saved = localStorage.getItem('mymoney_categories')
     return saved ? JSON.parse(saved) : INITIAL_CATEGORIES
   })
   const [budgetError, setBudgetError] = useState('')
   const [editingCategory, setEditingCategory] = useState(null)
-  const [tempCategoryLimit, setTempCategoryLimit] = useState('')
 
   const getCurrentMonthString = () => new Date().toISOString().slice(0, 7)
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthString())
@@ -699,7 +701,6 @@ export default function App() {
     }
   }
 
-  // ניהול הוספה ועריכה של יעדי חיסכון
   function handleAddGoal(e) {
     e.preventDefault()
     if (!newGoalName || !newGoalAmount) return
@@ -718,31 +719,8 @@ export default function App() {
     setEditingGoalId(null)
   }
 
-  // עדכון גבולות תקציב חכם עם בדיקה שלא חורגים מהמסגרת הכוללת
-  function handleUpdateCategoryLimit(catName, newLimitVal) {
-    const parsedLimit = parseFloat(newLimitVal) || 0
-    // חישוב שאר הקטגוריות בלי הקטגוריה הנוכחית
-    let sumOtherLimits = 0
-    Object.keys(categories).forEach(c => {
-      if (c !== catName) sumOtherLimits += categories[c].limit
-    })
-
-    if (sumOtherLimits + parsedLimit > monthlyBudgetLimit) {
-      setBudgetError(t.budgetExceededError)
-      return
-    }
-
-    setBudgetError('')
-    setCategories({
-      ...categories,
-      [catName]: { ...categories[catName], limit: parsedLimit }
-    })
-    setEditingCategory(null)
-  }
-
   function handleUpdateTotalBudget(newTotal) {
-    const val = parseFloat(newTotal) || 0
-    // בדיקה האם סך ההקצאות הנוכחיות גדול מהתקציב החדש
+    const val = newTotal === '' ? 0 : parseFloat(newTotal)
     const currentSumLimits = Object.values(categories).reduce((acc, c) => acc + c.limit, 0)
     if (currentSumLimits > val) {
       setBudgetError(t.budgetExceededError)
@@ -781,7 +759,17 @@ export default function App() {
     return { name: catName, total, ...categories[catName] }
   }).filter(cat => cat.total > 0)
 
-  // יצירת גרף עוגה מבוסס SVG חכם ונקי
+  // פונקציית חישוב תאריך הגעה משוער ליעד לפי היתרה החודשית נטו
+  function calculateTargetDate(targetAmount) {
+    if (netBalance <= 0) return t.noTarget
+    const monthsNeeded = targetAmount / netBalance
+    if (monthsNeeded > 120) return '10+ שנים'
+    const targetDateObj = new Date()
+    targetDateObj.setMonth(targetDateObj.getMonth() + Math.ceil(monthsNeeded))
+    return targetDateObj.toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { year: 'numeric', month: 'short' })
+  }
+
+  // יצירת גרף עוגה מבוסס SVG
   let cumulativePercent = 0
   const svgSlices = expensesByCategory.map((cat, index) => {
     const percentage = totalExpense > 0 ? (cat.total / totalExpense) * 100 : 0
@@ -814,7 +802,6 @@ export default function App() {
 
   const filteredTransactions = monthTransactions.filter(tr => tr.title.toLowerCase().includes(searchTerm.toLowerCase()) || (tr.category && tr.category.includes(searchTerm)))
 
-  // עיצוב לפי מצב לילה / יום
   const bgApp = theme === 'dark' ? '#0b0f19' : '#f8fafc'
   const cardBg = theme === 'dark' ? '#131c31' : '#ffffff'
   const textMain = theme === 'dark' ? '#f1f5f9' : '#0f172a'
@@ -832,7 +819,6 @@ export default function App() {
           <span style={{ color: textMuted, fontSize: '11px', fontWeight: '500' }}>{t.tagline}</span>
         </div>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          {/* בחירת שפה - 12 שפות */}
           <select
             value={lang}
             onChange={(e) => setLang(e.target.value)}
@@ -844,75 +830,101 @@ export default function App() {
             ))}
           </select>
 
-          {/* כפתור החלפת תאורת לילה / יום */}
-          <button 
+          <button
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            style={{ padding: '6px 8px', borderRadius: '10px', border: `1px solid ${borderColor}`, fontSize: '12px', background: cardBg, color: textMain, cursor: 'pointer', fontWeight: 'bold' }}
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '6px 10px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px' }}
+            title={t.themeToggle}
           >
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
-
-          <input 
-            type="month" 
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            style={{ padding: '6px 8px', borderRadius: '10px', border: `1px solid ${borderColor}`, fontSize: '11px', fontWeight: 'bold', background: cardBg, color: textMain, outline: 'none' }}
-          />
         </div>
       </header>
 
-      {/* 1. Dashboard Tab */}
+      {/* Month Selector */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+        <input
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '6px 12px', borderRadius: '12px', fontSize: '13px', fontWeight: 'bold', outline: 'none', cursor: 'pointer' }}
+        />
+      </div>
+
+      {/* Navigation Tabs */}
+      <nav style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', background: cardBg, padding: '4px', borderRadius: '14px', marginBottom: '16px', border: `1px solid ${borderColor}` }}>
+        {[
+          { id: 'dashboard', label: t.dashboard, icon: '📊' },
+          { id: 'transactions', label: t.transactions, icon: '💳' },
+          { id: 'budgets', label: t.budgets, icon: '🎯' },
+          { id: 'tools', label: t.tools, icon: '⚙️' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{ background: activeTab === tab.id ? (theme === 'dark' ? '#3b82f6' : '#2563eb') : 'transparent', color: activeTab === tab.id ? '#ffffff' : textMuted, border: 'none', padding: '8px 4px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', transition: 'all 0.2s' }}
+          >
+            <span style={{ fontSize: '14px' }}>{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {/* TAB 1: DASHBOARD */}
       {activeTab === 'dashboard' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, padding: '20px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
-            <span style={{ display: 'block', fontSize: '12px', color: textMuted, marginBottom: '6px', fontWeight: '600' }}>{t.netBalance}</span>
-            <span style={{ fontSize: '30px', fontWeight: '900', color: netBalance >= 0 ? '#10b981' : '#ef4444', letterSpacing: '-1px' }}>
+        <div>
+          {/* Net Balance Card */}
+          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', marginBottom: '12px', border: `1px solid ${borderColor}`, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+            <span style={{ color: textMuted, fontSize: '12px', fontWeight: '600' }}>{t.netBalance}</span>
+            <div style={{ fontSize: '28px', fontWeight: '900', color: netBalance >= 0 ? '#10b981' : '#ef4444', margin: '4px 0 12px 0' }}>
               ₪{netBalance.toLocaleString()}
-            </span>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '16px', paddingTop: '14px', borderTop: `1px solid ${borderColor}` }}>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', paddingTop: '10px', borderTop: `1px solid ${borderColor}` }}>
               <div>
-                <span style={{ fontSize: '11px', color: textMuted, display: 'block' }}>{t.income}</span>
-                <span style={{ fontSize: '15px', fontWeight: '700', color: '#10b981' }}>+₪{totalIncome.toLocaleString()}</span>
+                <span style={{ color: textMuted, fontSize: '11px' }}>{t.income}</span>
+                <div style={{ fontSize: '15px', fontWeight: '700', color: '#10b981' }}>+₪{totalIncome.toLocaleString()}</div>
               </div>
               <div>
-                <span style={{ fontSize: '11px', color: textMuted, display: 'block' }}>{t.expenses}</span>
-                <span style={{ fontSize: '15px', fontWeight: '700', color: '#ef4444' }}>-₪{totalExpense.toLocaleString()}</span>
+                <span style={{ color: textMuted, fontSize: '11px' }}>{t.expenses}</span>
+                <div style={{ fontSize: '15px', fontWeight: '700', color: '#ef4444' }}>-₪{totalExpense.toLocaleString()}</div>
               </div>
             </div>
           </div>
 
-          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, padding: '16px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <span style={{ fontSize: '11px', color: '#3b82f6', fontWeight: 'bold', display: 'block', marginBottom: '2px' }}>💡 {t.safeSpend}</span>
-              <span style={{ fontSize: '18px', fontWeight: '800', color: textMain }}>₪{dailySafeSpend.toLocaleString()}</span>
-            </div>
-            <div style={{ textAlign: isRTL ? 'left' : 'right' }}>
-              <span style={{ fontSize: '10px', color: textMuted, display: 'block' }}>{t.daysLeft}</span>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: textMain }}>{daysRemaining}</span>
+          {/* Safe Spend Card */}
+          <div style={{ background: theme === 'dark' ? 'linear-gradient(135deg, #1e3a8a, #1e1b4b)' : 'linear-gradient(135deg, #dbeafe, #eff6ff)', padding: '16px', borderRadius: '16px', marginBottom: '16px', border: `1px solid ${borderColor}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span style={{ color: theme === 'dark' ? '#93c5fd' : '#1d4ed8', fontSize: '12px', fontWeight: '700' }}>{t.safeSpend}</span>
+                <div style={{ fontSize: '24px', fontWeight: '900', color: theme === 'dark' ? '#ffffff' : '#1e40af', marginTop: '2px' }}>
+                  ₪{dailySafeSpend.toLocaleString()} <span style={{ fontSize: '12px', fontWeight: 'normal' }}>/ יום</span>
+                </div>
+              </div>
+              <div style={{ textAlign: isRTL ? 'left' : 'right' }}>
+                <span style={{ color: textMuted, fontSize: '11px' }}>{daysRemaining} {t.daysLeft}</span>
+              </div>
             </div>
           </div>
 
-          {/* גרף עוגה ופילוח הוצאות ויזואלי */}
-          <div style={{ background: cardBg, border: `1px solid ${borderColor}`, padding: '16px', borderRadius: '20px' }}>
-            <h3 style={{ fontSize: '13px', margin: '0 0 12px 0', color: textMain, fontWeight: '700' }}>{t.categoryBreakdown}</h3>
+          {/* Expense Breakdown & Chart */}
+          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}`, marginBottom: '16px' }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '700' }}>{t.categoryBreakdown}</h3>
             {expensesByCategory.length === 0 ? (
-              <p style={{ textAlign: 'center', color: textMuted, fontSize: '11px', padding: '15px' }}>{t.noTransactions}</p>
+              <p style={{ color: textMuted, fontSize: '12px', textAlign: 'center', margin: '20px 0' }}>{t.noTransactions}</p>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <div style={{ width: '110px', height: '110px', flexShrink: '0' }}>
-                  <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                <div style={{ width: '90px', height: '90px', flexShrink: '0' }}>
+                  <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%' }}>
                     {svgSlices}
                   </svg>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, fontSize: '11px' }}>
-                  {expensesByCategory.map(cat => (
-                    <div key={cat.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {expensesByCategory.map((cat, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: cat.color }}></span>
-                        <span style={{ color: textMuted }}>{cat.name}</span>
-                      </span>
-                      <strong style={{ color: textMain }}>₪{cat.total}</strong>
+                        <span>{cat.icon} {cat.name}</span>
+                      </div>
+                      <span style={{ fontWeight: 'bold' }}>₪{cat.total.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
@@ -922,241 +934,288 @@ export default function App() {
         </div>
       )}
 
-      {/* Transactions Tab */}
+      {/* TAB 2: TRANSACTIONS */}
       {activeTab === 'transactions' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <input 
-            type="text" 
-            placeholder={t.searchPlaceholder} 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: '100%', padding: '10px 14px', borderRadius: '14px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px', boxSizing: 'border-box' }}
-          />
+        <div>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+            <input
+              type="text"
+              placeholder={t.searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ flexGrow: 1, background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px 12px', borderRadius: '12px', fontSize: '12px', outline: 'none' }}
+            />
+            <button
+              onClick={() => setIsModalOpen(true)}
+              style={{ background: '#3b82f6', color: '#ffffff', border: 'none', padding: '0 14px', borderRadius: '12px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}
+            >
+              +
+            </button>
+          </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '500px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {filteredTransactions.length === 0 ? (
-              <p style={{ textAlign: 'center', color: textMuted, fontSize: '12px', padding: '30px' }}>{t.noTransactions}</p>
+              <div style={{ background: cardBg, padding: '24px', borderRadius: '16px', textAlign: 'center', color: textMuted, fontSize: '13px', border: `1px solid ${borderColor}` }}>
+                {t.noTransactions}
+              </div>
             ) : (
-              filteredTransactions.map(tr => (
-                <div key={tr.id} style={{ background: cardBg, padding: '12px 14px', borderRadius: '16px', border: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <span style={{ display: 'block', fontWeight: '700', fontSize: '13px', color: textMain }}>{tr.title}</span>
-                    <span style={{ fontSize: '10px', color: textMuted }}>{tr.category} {tr.is_recurring && `• ${t.recurringBadge}`}</span>
+              filteredTransactions.map(tr => {
+                const isInc = Number(tr.amount) > 0
+                return (
+                  <div key={tr.id} style={{ background: cardBg, padding: '12px 14px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px solid ${borderColor}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '18px' }}>{isInc ? '📈' : (categories[tr.category]?.icon || '📉')}</span>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: '700' }}>{tr.title}</div>
+                        <div style={{ fontSize: '11px', color: textMuted, display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <span>{tr.created_at ? tr.created_at.slice(0, 10) : ''}</span>
+                          {tr.is_recurring && <span style={{ background: '#3b82f622', color: '#3b82f6', padding: '1px 6px', borderRadius: '6px', fontSize: '9px' }}>{t.recurringBadge}</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: '800', color: isInc ? '#10b981' : textMain }}>
+                        {isInc ? `+₪${tr.amount}` : `₪${tr.amount}`}
+                      </span>
+                      <button onClick={() => deleteTransaction(tr.id)} style={{ background: 'transparent', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '12px' }}>✕</button>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontWeight: '800', fontSize: '14px', color: Number(tr.amount) > 0 ? '#10b981' : '#ef4444' }}>
-                      {Number(tr.amount) > 0 ? `+₪${tr.amount}` : `-₪{Math.abs(tr.amount)}`}
-                    </span>
-                    <button onClick={() => deleteTransaction(tr.id)} style={{ background: 'none', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '14px' }}>✕</button>
-                  </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </div>
       )}
 
-      {/* Budgets Tab - יעדי חיסכון + תקציב חכם עם בקרה ומגבלות */}
+      {/* TAB 3: BUDGETS & GOALS (עם מחשבון תאריך יעד פעיל) */}
       {activeTab === 'budgets' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
-          {/* אזהרת חריגת תקציב אם קיימת */}
-          {budgetError && (
-            <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', padding: '10px 14px', borderRadius: '12px', color: '#ef4444', fontSize: '11px', fontWeight: 'bold' }}>
-              ⚠️ {budgetError}
-            </div>
-          )}
-
-          {/* 1. ניהול יעדי חיסכון אישיים */}
-          <div style={{ background: cardBg, padding: '16px', borderRadius: '20px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', margin: '0 0 12px 0', color: textMain, fontWeight: '700' }}>🎯 {t.savingsGoalsTitle}</h3>
+          {/* Smart Budget & Total Limit */}
+          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: '700' }}>{t.smartBudgetTitle}</h3>
+            {budgetError && <div style={{ background: '#ef444422', color: '#ef4444', padding: '8px 10px', borderRadius: '8px', fontSize: '11px', marginBottom: '10px' }}>{budgetError}</div>}
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
-              {savingsGoals.map(goal => {
-                const currentSaved = Math.max(netBalance, 0)
-                const percent = Math.min(Math.round((currentSaved / goal.target) * 100), 100)
-                
+            <div style={{ marginBottom: '12px' }}>
+              <label style={{ display: 'block', fontSize: '12px', color: textMuted, marginBottom: '4px' }}>{t.totalMonthlyBudgetLabel}</label>
+              <input
+                type="number"
+                value={monthlyBudgetLimit}
+                onChange={(e) => handleUpdateTotalBudget(e.target.value)}
+                style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontSize: '14px', fontWeight: 'bold', outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <h4 style={{ margin: '14px 0 8px 0', fontSize: '12px', color: textMuted }}>{t.categoryLimitsTitle}</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {Object.keys(categories).map(catName => {
+                const cat = categories[catName]
+                const spent = monthTransactions
+                  .filter(tr => tr.category === catName && Number(tr.amount) < 0)
+                  .reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
+                const pct = cat.limit > 0 ? Math.min(Math.round((spent / cat.limit) * 100), 100) : 0
+
                 return (
-                  <div key={goal.id} style={{ background: inputBg, padding: '10px 12px', borderRadius: '14px', border: `1px solid ${borderColor}` }}>
-                    {editingGoalId === goal.id ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <input type="text" value={editGoalName} onChange={(e) => setEditGoalName(e.target.value)} style={{ padding: '6px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: cardBg, color: textMain, fontSize: '11px' }} />
-                        <input type="number" value={editGoalAmount} onChange={(e) => setEditGoalAmount(e.target.value)} style={{ padding: '6px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: cardBg, color: textMain, fontSize: '11px' }} />
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button onClick={() => saveEditedGoal(goal.id)} style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>שמור</button>
-                          <button onClick={() => setEditingGoalId(null)} style={{ background: 'transparent', color: textMuted, border: `1px solid ${borderColor}`, padding: '4px 10px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer' }}>{t.cancel}</button>
-                        </div>
+                  <div key={catName} style={{ background: inputBg, padding: '10px', borderRadius: '10px', border: `1px solid ${borderColor}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', fontSize: '12px', marginBottom: '6px' }}>
+                      <span style={{ fontWeight: 'bold' }}>{cat.icon} {catName}</span>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <span style={{ color: textMuted }}>₪{spent} /</span>
+                        <input
+                          type="number"
+                          value={editingCategory === catName ? cat.limit : cat.limit}
+                          onChange={(e) => {
+                            const val = e.target.value === '' ? 0 : parseFloat(e.target.value)
+                            setCategories({
+                              ...categories,
+                              [catName]: { ...cat, limit: val }
+                            })
+                          }}
+                          style={{ width: '70px', background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '2px 6px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', textAlign: 'center', outline: 'none' }}
+                        />
                       </div>
-                    ) : (
-                      <div>
-                        <div style={{ display: 'progressbar', display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
-                          <span style={{ fontWeight: 'bold', color: textMain }}>{goal.name}</span>
-                          <span style={{ color: textMuted }}>₪{currentSaved} / ₪{goal.target.toLocaleString()} ({percent}%)</span>
-                        </div>
-                        <div style={{ background: cardBg, height: '6px', borderRadius: '4px', overflow: 'hidden', marginBottom: '8px' }}>
-                          <div style={{ background: '#10b981', width: `${percent}%`, height: '100%', transition: 'width 0.3s ease' }}></div>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                          <button onClick={() => { setEditingGoalId(goal.id); setEditGoalName(goal.name); setEditGoalAmount(goal.target); }} style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>{t.edit}</button>
-                          <button onClick={() => deleteGoal(goal.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}>{t.delete}</button>
-                        </div>
-                      </div>
-                    )}
+                    </div>
+                    <div style={{ width: '100%0', background: borderColor, height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ width: `${pct}%`, background: pct > 90 ? '#ef4444' : cat.color, height: '100%', borderRadius: '3px', transition: 'width 0.3s' }}></div>
+                    </div>
                   </div>
                 )
               })}
             </div>
-
-            {/* הוספת יעד חדש */}
-            <form onSubmit={handleAddGoal} style={{ display: 'flex', gap: '8px' }}>
-              <input type="text" placeholder={t.goalNamePlaceholder} value={newGoalName} onChange={(e) => setNewGoalName(e.target.value)} style={{ flex: 2, padding: '8px', borderRadius: '10px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, fontSize: '11px', outline: 'none' }} />
-              <input type="number" placeholder={t.goalAmountPlaceholder} value={newGoalAmount} onChange={(e) => setNewGoalAmount(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '10px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, fontSize: '11px', outline: 'none' }} />
-              <button type="submit" style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '10px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>+</button>
-            </form>
           </div>
 
-          {/* 2. תקציב חודשי חכם עם מגבלות */}
-          <div style={{ background: cardBg, padding: '16px', borderRadius: '20px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', margin: '0 0 10px 0', color: textMain, fontWeight: '700' }}>🛡️ {t.smartBudgetTitle}</h3>
+          {/* Savings Goals & Target Date */}
+          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '700' }}>{t.savingsGoalsTitle}</h3>
             
-            <div style={{ marginBottom: '14px', background: inputBg, padding: '10px 12px', borderRadius: '14px', border: `1px solid ${borderColor}` }}>
-              <label style={{ display: 'block', fontSize: '10px', color: textMuted, marginBottom: '4px', fontWeight: 'bold' }}>{t.totalMonthlyBudgetLabel}</label>
-              <input 
-                type="number" 
-                value={monthlyBudgetLimit} 
-                onChange={(e) => handleUpdateTotalBudget(e.target.value)}
-                style={{ width: '100%', padding: '8px', borderRadius: '8px', border: `1px solid ${borderColor}`, background: cardBg, color: textMain, fontSize: '13px', fontWeight: 'bold', outline: 'none', boxSizing: 'border-box' }}
+            <form onSubmit={handleAddGoal} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '14px' }}>
+              <input
+                type="text"
+                placeholder={t.goalNamePlaceholder}
+                value={newGoalName}
+                onChange={(e) => setNewGoalName(e.target.value)}
+                style={{ background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '8px 10px', borderRadius: '10px', fontSize: '12px', outline: 'none' }}
               />
-            </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="number"
+                  placeholder={t.goalAmountPlaceholder}
+                  value={newGoalAmount}
+                  onChange={(e) => setNewGoalAmount(e.target.value)}
+                  style={{ flexGrow: 1, background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '8px 10px', borderRadius: '10px', fontSize: '12px', outline: 'none' }}
+                />
+                <button type="submit" style={{ background: '#3b82f6', color: '#ffffff', border: 'none', padding: '0 14px', borderRadius: '10px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
+                  {t.addGoal}
+                </button>
+              </div>
+            </form>
 
-            <h4 style={{ fontSize: '11px', margin: '0 0 8px 0', color: textMuted }}>{t.categoryLimitsTitle}</h4>
-            
-            {Object.keys(categories).map(catName => {
-              const catData = categories[catName]
-              const totalSpent = monthTransactions
-                .filter(tr => tr.category === catName && Number(tr.amount) < 0)
-                .reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
-              const percent = Math.min(Math.round((totalSpent / catData.limit) * 100), 100)
-
-              return (
-                <div key={catName} style={{ marginBottom: '10px', background: inputBg, padding: '8px 10px', borderRadius: '12px', border: `1px solid ${borderColor}` }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px', alignItems: 'center' }}>
-                    <span>{catData.icon} {catName}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      {editingCategory === catName ? (
-                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                          <input 
-                            type="number" 
-                            value={tempCategoryLimit} 
-                            onChange={(e) => setTempCategoryLimit(e.target.value)}
-                            style={{ width: '60px', padding: '2px 4px', fontSize: '11px', borderRadius: '4px', border: `1px solid ${borderColor}`, background: cardBg, color: textMain }}
-                          />
-                          <button onClick={() => handleUpdateCategoryLimit(catName, tempCategoryLimit)} style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', cursor: 'pointer' }}>✓</button>
-                        </div>
-                      ) : (
-                        <span onClick={() => { setEditingCategory(catName); setTempCategoryLimit(catData.limit); }} style={{ fontWeight: 'bold', cursor: 'pointer', color: '#3b82f6' }} title="לחץ לעריכת מגבלה">
-                          ₪{totalSpent} / ₪{catData.limit} ✏️
-                        </span>
-                      )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {savingsGoals.map(goal => {
+                const targetDateFormatted = calculateTargetDate(goal.target)
+                return (
+                  <div key={goal.id} style={{ background: inputBg, padding: '12px', borderRadius: '12px', border: `1px solid ${borderColor}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{goal.name}</span>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '13px', fontWeight: '800', color: '#10b981' }}>₪{goal.target.toLocaleString()}</span>
+                        <button onClick={() => deleteGoal(goal.id)} style={{ background: 'transparent', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '12px' }}>✕</button>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: textMuted, paddingTop: '6px', borderTop: `1px solid ${borderColor}` }}>
+                      <span>{t.targetDate}:</span>
+                      <span style={{ fontWeight: 'bold', color: textMain }}>{targetDateFormatted}</span>
                     </div>
                   </div>
-                  <div style={{ background: cardBg, height: '6px', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ background: catData.color, width: `${percent}%`, height: '100%', transition: 'width 0.3s ease' }}></div>
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-
         </div>
       )}
 
-      {/* Tools Tab */}
+      {/* TAB 4: TOOLS & ANALYTICS */}
       {activeTab === 'tools' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ background: cardBg, padding: '16px', borderRadius: '20px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ fontSize: '13px', margin: '0 0 10px 0', color: textMain, fontWeight: '700' }}>{t.subscriptionRadar}</h3>
-            <p style={{ fontSize: '11px', color: textMuted, marginBottom: '12px' }}>{t.yearlyTotal} <strong style={{ color: textMain }}>₪{totalRecurringYearly.toLocaleString()}</strong></p>
-            <button onClick={exportToCSV} style={{ width: '100%', background: '#10b981', color: '#fff', border: 'none', padding: '10px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>
-              {t.exportCSV}
-            </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Subscription Radar */}
+          <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: '700' }}>{t.subscriptionRadar} 📡</h3>
+            <div style={{ fontSize: '12px', color: textMuted, marginBottom: '12px' }}>
+              {t.yearlyTotal} <strong style={{ color: textMain, fontSize: '14px' }}>₪{totalRecurringYearly.toLocaleString()}</strong>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {recurringExpenses.length === 0 ? (
+                <p style={{ color: textMuted, fontSize: '12px', margin: 0 }}>אין מנויים או הוצאות קבועות החודש.</p>
+              ) : (
+                recurringExpenses.map(item => (
+                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', background: inputBg, padding: '8px 10px', borderRadius: '8px' }}>
+                    <span>{item.title}</span>
+                    <span style={{ fontWeight: 'bold', color: '#ef4444' }}>₪{item.amount}</span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Fixed Bottom Navigation with Floating Action Button (FAB) in Center */}
-      <nav style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '480px', background: cardBg, borderTop: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '8px 0 16px 0', boxSizing: 'border-box', zIndex: 1000 }}>
-        <button 
-          onClick={() => setActiveTab('dashboard')} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'dashboard' ? '#3b82f6' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}
-        >
-          <span style={{ fontSize: '18px' }}>📊</span>
-          <span>{t.dashboard}</span>
-        </button>
-
-        <button 
-          onClick={() => setActiveTab('transactions')} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'transactions' ? '#3b82f6' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}
-        >
-          <span style={{ fontSize: '18px' }}>💳</span>
-          <span>{t.transactions}</span>
-        </button>
-
-        {/* Floating Plus Button (FAB) */}
-        <div style={{ flex: 1, display: 'flex', justifyContent: 'center', position: 'relative' }}>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            style={{ position: 'absolute', top: '-22px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff', border: 'none', width: '50px', height: '50px', borderRadius: '50%', fontSize: '24px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 8px 20px rgba(59, 130, 246, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s' }}
-            title={t.newTransaction}
+          {/* Export CSV Button */}
+          <button
+            onClick={exportToCSV}
+            style={{ width: '100%', background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '14px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
           >
-            +
+            {t.exportCSV}
           </button>
         </div>
+      )}
 
-        <button 
-          onClick={() => setActiveTab('budgets')} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'budgets' ? '#3b82f6' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}
-        >
-          <span style={{ fontSize: '18px' }}>🎯</span>
-          <span>{t.budgets}</span>
-        </button>
-
-        <button 
-          onClick={() => setActiveTab('tools')} 
-          style={{ background: 'none', border: 'none', color: activeTab === 'tools' ? '#3b82f6' : textMuted, fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', flex: 1 }}
-        >
-          <span style={{ fontSize: '18px' }}>🛠️</span>
-          <span>{t.tools}</span>
-        </button>
-      </nav>
-
-      {/* New Transaction Modal */}
+      {/* Modal for New Transaction */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
-          <div style={{ background: cardBg, padding: '22px', borderRadius: '24px', width: '90%', maxWidth: '360px', border: `1px solid ${borderColor}`, boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: textMain, fontWeight: '800' }}>{t.newTransaction}</h3>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px' }}>
+          <div style={{ background: cardBg, width: '100%', maxWidth: '400px', padding: '20px', borderRadius: '24px', border: `1px solid ${borderColor}`, boxSizing: 'border-box' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', fontWeight: '800' }}>{t.newTransaction}</h3>
+            
             <form onSubmit={addTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button type="button" onClick={() => setType('expense')} style={{ flex: 1, padding: '10px', borderRadius: '12px', border: 'none', background: type === 'expense' ? '#ef4444' : inputBg, color: type === 'expense' ? '#fff' : textMain, fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.expenseType}</button>
-                <button type="button" onClick={() => setType('income')} style={{ flex: 1, padding: '10px', borderRadius: '12px', border: 'none', background: type === 'income' ? '#10b981' : inputBg, color: type === 'income' ? '#fff' : textMain, fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.incomeType}</button>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: inputBg, padding: '4px', borderRadius: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setType('expense')}
+                  style={{ background: type === 'expense' ? '#ef4444' : 'transparent', color: type === 'expense' ? '#ffffff' : textMuted, border: 'none', padding: '8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                >
+                  {t.expenseType}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setType('income')}
+                  style={{ background: type === 'income' ? '#10b981' : 'transparent', color: type === 'income' ? '#ffffff' : textMuted, border: 'none', padding: '8px', borderRadius: '8px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                >
+                  {t.incomeType}
+                </button>
               </div>
-              <input type="text" placeholder={t.titlePlaceholder} value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '12px', borderRadius: '12px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }} />
-              <input type="number" placeholder={t.amountLabel} value={amount} onChange={(e) => setAmount(e.target.value)} style={{ padding: '12px', borderRadius: '12px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }} />
-              
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{t.titleLabel}</label>
+                <input
+                  type="text"
+                  placeholder={t.titlePlaceholder}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{t.amountLabel}</label>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }}
+                  required
+                />
+              </div>
+
               {type === 'expense' && (
-                <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ padding: '12px', borderRadius: '12px', border: `1px solid ${borderColor}`, background: inputBg, color: textMain, outline: 'none', fontSize: '12px' }}>
-                  {Object.keys(categories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                </select>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{t.categoryLabel}</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontSize: '12px', outline: 'none', boxSizing: 'border-box' }}
+                  >
+                    {Object.keys(categories).map(cat => (
+                      <option key={cat} value={cat}>{categories[cat].icon} {cat}</option>
+                    ))}
+                  </select>
+                </div>
               )}
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: textMuted }}>
-                <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} id="recCheck" />
-                <label htmlFor="recCheck" style={{ cursor: 'pointer' }}>{t.recurringCheckbox}</label>
-              </div>
+              {type === 'expense' && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', cursor: 'pointer', marginTop: '4px' }}>
+                  <input
+                    type="checkbox"
+                    checked={isRecurring}
+                    onChange={(e) => setIsRecurring(e.target.checked)}
+                    style={{ accentColor: '#3b82f6', width: '16px', height: '16px' }}
+                  />
+                  <span>{t.recurringCheckbox}</span>
+                </label>
+              )}
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button type="submit" style={{ flex: 1, background: '#3b82f6', color: '#fff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.saveButton}</button>
-                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, background: 'transparent', color: textMuted, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.cancel}</button>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  style={{ flex: 1, background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  type="submit"
+                  style={{ flex: 1, background: '#3b82f6', color: '#ffffff', border: 'none', padding: '10px', borderRadius: '10px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+                >
+                  {t.saveButton}
+                </button>
               </div>
             </form>
           </div>
