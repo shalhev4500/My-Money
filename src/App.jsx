@@ -1,896 +1,796 @@
-// name=elite-finance-app-v4.js
-import React, { useState, useEffect, useRef } from 'react'
-import { supabase } from './supabaseClient'
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nest Budget & Savings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+Hebrew:wght@400;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --surface-card: #151c2c;
+            --surface-card-hover: #1c263b;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary-emerald: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.15);
+            --accent-indigo: #6366f1;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --radius-card: 20px;
+            --radius-pill: 9999px;
+            --shadow-float: 0 12px 32px rgba(0, 0, 0, 0.35);
+        }
 
-const TRANSLATIONS = {
-  he: {
-    appName: 'Elite Finance',
-    tagline: 'מודיעין פיננסי חכם ומתקדם',
-    dashboard: 'בית',
-    chartsTab: 'תרשימים',
-    transactions: 'תנועות',
-    budgets: 'תקציבים',
-    goalsTab: 'יעדים',
-    netWorthTab: 'הון עצמי',
-    tools: 'כלים',
-    netBalance: 'מאזן חודשי נקי',
-    income: 'הכנסות',
-    expenses: 'הוצאות',
-    safeSpend: 'תקציב יומי מומלץ',
-    daysLeft: 'ימים שנותרו',
-    categoryBreakdown: 'פילוח הוצאות לפי קטגוריות',
-    searchPlaceholder: 'חיפוש מהיר לפי תיאור או קטגוריה...',
-    noTransactions: 'אין תנועות להצגה בחודש זה.',
-    recurringBadge: 'הוראת קבע/מנוי 🔄',
-    newTransaction: 'הוספת תנועה חדשה',
-    expenseType: 'הוצאה 📉',
-    incomeType: 'הכנסה 📈',
-    titleLabel: 'תיאור',
-    titlePlaceholder: 'למשל: סופרמרקט, נטפליקס...',
-    amountLabel: 'סכום',
-    categoryLabel: 'קטגוריה',
-    recurringCheckbox: 'מנוי או הוראת קבע מתמשכת',
-    endDateLabel: 'חודש סיום להוראת הקבע (אופציונלי)',
-    saveButton: 'שמור תנועה',
-    subscriptionRadar: 'רדאר מנויים והוראות קבע',
-    yearlyTotal: 'עלות שנתית מצטברת:',
-    smartBudgetTitle: 'הגדרת תקציב לכל קטגוריה',
-    scanReceiptBtn: '📸 סרוק חשבונית עם AI',
-    scanningReceipt: 'מנתח חשבונית...',
-    scanSuccess: 'החשבונית פוענחה בהצלחה!',
-    savingsGoalsTitle: '🎯 יעדי חיסכון חכמים',
-    goalNamePlaceholder: 'שם היעד (למשל: רכב חדש)',
-    goalTargetPlaceholder: 'סכום יעד (₪)',
-    goalCurrentPlaceholder: 'חסכתי כבר (₪)',
-    addGoalBtn: 'הוסף יעד חיסכון',
-    estCompletion: 'תאריך יעד משוער:',
-    monthsToGoal: 'חודשים שנותרו:',
-    securityTitle: '🔒 נעילת אבטחה',
-    lockScreenTitle: 'הזן קוד גישה (ברירת מחדל: 1234)',
-    unlockBtn: 'פתח נעילה',
-    healthScoreTitle: 'מדד בריאות פיננסית',
-    netWorthTitle: '🏛️ מאזן הון עצמי ונכסים',
-    addAssetBtn: 'הוסף נכס / התחייבות',
-    exportCsv: '📥 ייצוא נתונים ל-CSV',
-    prevMonthCompare: 'השוואת הוצאות מול חודש קודם',
-    cancel: 'ביטול',
-    delete: 'מחיקה'
-  },
-  en: {
-    appName: 'Elite Finance',
-    tagline: 'Advanced Money Intelligence',
-    dashboard: 'Dashboard',
-    chartsTab: 'Charts',
-    transactions: 'Transactions',
-    budgets: 'Budgets',
-    goalsTab: 'Goals',
-    netWorthTab: 'Net Worth',
-    tools: 'Tools',
-    netBalance: 'Net Monthly Balance',
-    income: 'Income',
-    expenses: 'Expenses',
-    safeSpend: 'Daily Safe-to-Spend',
-    daysLeft: 'days left',
-    categoryBreakdown: 'Category Expense Breakdown',
-    searchPlaceholder: 'Search transaction...',
-    noTransactions: 'No transactions recorded.',
-    recurringBadge: 'Recurring 🔄',
-    newTransaction: 'New Transaction',
-    expenseType: 'Expense 📉',
-    incomeType: 'Income 📈',
-    titleLabel: 'Description',
-    titlePlaceholder: 'e.g. Grocery, Netflix...',
-    amountLabel: 'Amount',
-    categoryLabel: 'Category',
-    recurringCheckbox: 'Recurring subscription',
-    endDateLabel: 'End Month (Optional)',
-    saveButton: 'Save Transaction',
-    subscriptionRadar: 'Subscription Radar',
-    yearlyTotal: 'Yearly Total:',
-    smartBudgetTitle: 'Category Budgets',
-    scanReceiptBtn: '📸 Scan Receipt',
-    scanningReceipt: 'Scanning...',
-    scanSuccess: 'Receipt analyzed!',
-    savingsGoalsTitle: '🎯 Savings Goals',
-    goalNamePlaceholder: 'Goal Name',
-    goalTargetPlaceholder: 'Target Amount',
-    goalCurrentPlaceholder: 'Current Saved',
-    addGoalBtn: 'Add Goal',
-    estCompletion: 'Estimated completion:',
-    monthsToGoal: 'Months left:',
-    securityTitle: '🔒 Security Passcode',
-    lockScreenTitle: 'Enter Passcode (Default: 1234)',
-    unlockBtn: 'Unlock',
-    healthScoreTitle: 'Financial Health',
-    netWorthTitle: '🏛️ Net Worth Intelligence',
-    addAssetBtn: 'Add Asset / Debt',
-    exportCsv: '📥 Export to CSV',
-    prevMonthCompare: 'Month-over-Month Comparison',
-    cancel: 'Cancel',
-    delete: 'Delete'
-  }
-}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', 'Noto Sans Hebrew', 'Noto Sans Arabic', sans-serif;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
 
-const INITIAL_CATEGORIES = {
-  'מזון וסופר': { icon: '🛒', color: '#10b981', limit: 2500 },
-  'שכירות ודיור': { icon: '🏠', color: '#3b82f6', limit: 4000 },
-  'תחבורה ודלק': { icon: '⛽', color: '#f59e0b', limit: 1200 },
-  'בילויים ופנאי': { icon: '🎉', color: '#ec4899', limit: 1000 },
-  'חשבונות וארנונה': { icon: '💡', color: '#8b5cf6', limit: 900 },
-  'שונות': { icon: '📦', color: '#64748b', limit: 500 }
-}
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding-bottom: 110px;
+            min-height: 100vh;
+        }
 
-const INITIAL_ASSETS = [
-  { id: 1, name: 'חשבון עו"ש בנקאי', type: 'asset', amount: 15400 },
-  { id: 2, name: 'קרן השתלמות / חסכונות', type: 'asset', amount: 45000 },
-  { id: 3, name: 'הלוואת רכב / אשראי', type: 'liability', amount: 12000 }
-]
+        /* Top Bar */
+        header {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-export default function App() {
-  const [lang, setLang] = useState(() => localStorage.getItem('mymoney_lang') || 'he')
-  const [theme, setTheme] = useState(() => localStorage.getItem('mymoney_theme') || 'dark')
-  const [isLocked, setIsLocked] = useState(true)
-  const [passcode, setPasscode] = useState('')
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-  const [activeTab, setActiveTab] = useState('dashboard')
-  const [transactions, setTransactions] = useState([])
-  const [savingsGoals, setSavingsGoals] = useState([])
-  const [assetsList, setAssetsList] = useState(() => {
-    const saved = localStorage.getItem('mymoney_assets')
-    return saved ? JSON.parse(saved) : INITIAL_ASSETS
-  })
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary-emerald), var(--accent-indigo));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+        }
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [isModalOpen, setIsModalOpen] = useState(false)
+        .brand-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
 
-  // Transaction Form
-  const [title, setTitle] = useState('')
-  const [amount, setAmount] = useState('')
-  const [type, setType] = useState('expense')
-  const [category, setCategory] = useState('מזון וסופר')
-  const [isRecurring, setIsRecurring] = useState(false)
-  const [recurringEndDate, setRecurringEndDate] = useState('')
+        .controls-group {
+            display: flex;
+            gap: 10px;
+        }
 
-  // Asset Form
-  const [assetName, setAssetName] = useState('')
-  const [assetAmount, setAssetAmount] = useState('')
-  const [assetType, setAssetType] = useState('asset')
+        select {
+            background: var(--surface-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            outline: none;
+            cursor: pointer;
+        }
 
-  // Goal Form
-  const [newGoalName, setNewGoalName] = useState('')
-  const [newGoalTarget, setNewGoalTarget] = useState('')
-  const [newGoalCurrent, setNewGoalCurrent] = useState('')
+        /* Container Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
-  const [isScanning, setIsScanning] = useState(false)
-  const fileInputRef = useRef(null)
+        /* Floating Nav Bar */
+        .floating-nav-container {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
 
-  const [categories, setCategories] = useState(() => {
-    const saved = localStorage.getItem('mymoney_categories')
-    return saved ? JSON.parse(saved) : INITIAL_CATEGORIES
-  })
+        .floating-nav {
+            background: rgba(21, 28, 44, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            border-radius: var(--radius-pill);
+            display: flex;
+            gap: 6px;
+            box-shadow: var(--shadow-float);
+        }
 
-  const getCurrentMonthString = () => new Date().toISOString().slice(0, 7)
-  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthString())
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 22px;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
 
-  useEffect(() => { localStorage.setItem('mymoney_lang', lang) }, [lang])
-  useEffect(() => { localStorage.setItem('mymoney_theme', theme) }, [theme])
-  useEffect(() => { localStorage.setItem('mymoney_categories', JSON.stringify(categories)) }, [categories])
-  useEffect(() => { localStorage.setItem('mymoney_assets', JSON.stringify(assetsList)) }, [assetsList])
+        .nav-btn.active {
+            background: var(--primary-emerald);
+            color: #000;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+        /* Metric Grid Cards (Squared/Clean Layout) */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
 
-  async function fetchData() {
-    const { data: txData } = await supabase.from('expenses').select('*').order('created_at', { ascending: false })
-    if (txData) setTransactions(txData)
+        .square-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-card);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
 
-    const { data: goalData } = await supabase.from('savings_goals').select('*')
-    if (goalData) setSavingsGoals(goalData)
-  }
+        .card-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
 
-  async function addTransaction(e) {
-    e.preventDefault()
-    if (!title || !amount) return
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
 
-    const numericAmount = parseFloat(amount)
-    const finalAmount = type === 'expense' ? -Math.abs(numericAmount) : Math.abs(numericAmount)
+        .badge {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 10px;
+            background: var(--primary-glow);
+            color: var(--primary-emerald);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
 
-    const { data, error } = await supabase
-      .from('expenses')
-      .insert([{ 
-        title: title.trim(), 
-        amount: finalAmount, 
-        category: type === 'expense' ? category : 'Income',
-        is_recurring: type === 'expense' ? isRecurring : false,
-        recurring_end_date: (type === 'expense' && isRecurring) ? recurringEndDate : null
-      }])
-      .select()
+        /* Main Form Section */
+        .form-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-card);
+            padding: 28px;
+            margin-bottom: 32px;
+        }
 
-    if (error) {
-      alert('שגיאה בשמירה: ' + error.message)
-    } else if (data) {
-      setTransactions([data[0], ...transactions])
-      setTitle('')
-      setAmount('')
-      setIsRecurring(false)
-      setRecurringEndDate('')
-      setIsModalOpen(false)
-    }
-  }
+        .form-title {
+            font-size: 1.15rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
 
-  async function deleteTransaction(id) {
-    const { error } = await supabase.from('expenses').delete().eq('id', id)
-    if (!error) {
-      setTransactions(transactions.filter(item => item.id !== id))
-    }
-  }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
 
-  function handleAddAsset(e) {
-    e.preventDefault()
-    if (!assetName || !assetAmount) return
-    const newAsset = { id: Date.now(), name: assetName.trim(), type: assetType, amount: parseFloat(assetAmount) }
-    setAssetsList([...assetsList, newAsset])
-    setAssetName('')
-    setAssetAmount('')
-  }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-  function deleteAsset(id) {
-    setAssetsList(assetsList.filter(a => a.id !== id))
-  }
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
 
-  async function handleAddGoal(e) {
-    e.preventDefault()
-    if (!newGoalName || !newGoalTarget) return
+        label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
 
-    const { data, error } = await supabase
-      .from('savings_goals')
-      .insert([{
-        title: newGoalName.trim(),
-        target_amount: parseFloat(newGoalTarget),
-        current_amount: parseFloat(newGoalCurrent || 0)
-      }])
-      .select()
+        input, select {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            outline: none;
+        }
 
-    if (!error && data) {
-      setSavingsGoals([...savingsGoals, data[0]])
-      setNewGoalName('')
-      setNewGoalTarget('')
-      setNewGoalCurrent('')
-    }
-  }
+        input:focus {
+            border-color: var(--primary-emerald);
+        }
 
-  async function deleteGoal(id) {
-    const { error } = await supabase.from('savings_goals').delete().eq('id', id)
-    if (!error) {
-      setSavingsGoals(savingsGoals.filter(g => g.id !== id))
-    }
-  }
+        .checkbox-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
 
-  function exportToCSV() {
-    if (transactions.length === 0) return alert('אין תנועות לייצוא')
-    let csvContent = "data:text/csv;charset=utf-8,Date,Title,Amount,Category,Recurring\n"
-    transactions.forEach(t => {
-      csvContent += `${t.created_at ? t.created_at.slice(0, 10) : ''},"${t.title}",${t.amount},"${t.category}",${t.is_recurring ? 'Yes' : 'No'}\n`
-    })
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `finance_export_${selectedMonth}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+        .checkbox-group input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-emerald);
+            cursor: pointer;
+        }
 
-  function handleReceiptScan() {
-    setIsScanning(true)
-    setTimeout(() => {
-      setIsScanning(false)
-      setTitle('סופרמרקט ענק / קניה חודשית')
-      setAmount('249.50')
-      setCategory('מזון וסופר')
-      alert(t.scanSuccess)
-    }, 1200)
-  }
+        .btn-submit {
+            background: var(--primary-emerald);
+            color: #051610;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 16px;
+            width: 100%;
+        }
 
-  const t = TRANSLATIONS[lang] || TRANSLATIONS.he
-  const isRTL = lang === 'he'
+        /* Goals Grid */
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
 
-  const formatMoney = (val) => {
-    return `₪${Math.round(val).toLocaleString()}`
-  }
+        .goal-item-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-card);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-  // Monthly Breakdown
-  const monthTransactions = transactions.filter(tr => {
-    const tDate = tr.created_at ? tr.created_at.slice(0, 7) : getCurrentMonthString()
-    return tDate === selectedMonth
-  })
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
 
-  const totalIncome = monthTransactions.filter(tr => Number(tr.amount) > 0).reduce((sum, tr) => sum + Number(tr.amount), 0)
-  const totalExpense = monthTransactions.filter(tr => Number(tr.amount) < 0).reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
-  const netBalance = totalIncome - totalExpense
+        .progress-bar-bg {
+            background: rgba(255,255,255,0.05);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
 
-  // Net Worth Calculation
-  const totalAssetsVal = assetsList.filter(a => a.type === 'asset').reduce((sum, a) => sum + a.amount, 0)
-  const totalLiabilitiesVal = assetsList.filter(a => a.type === 'liability').reduce((sum, a) => sum + a.amount, 0)
-  const netWorthTotal = totalAssetsVal - totalLiabilitiesVal
+        .progress-bar-fill {
+            background: var(--primary-emerald);
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
 
-  const daysInMonth = new Date(selectedMonth.slice(0, 4), selectedMonth.slice(5, 7), 0).getDate()
-  const currentDay = selectedMonth === getCurrentMonthString() ? new Date().getDate() : 1
-  const daysRemaining = Math.max(daysInMonth - currentDay + 1, 1)
-  
-  const totalCategoryLimits = Object.values(categories).reduce((sum, c) => sum + (c.limit || 0), 0)
-  const remainingBudgetMoney = Math.max(totalCategoryLimits - totalExpense, 0)
-  const dailySafeSpend = Math.round(remainingBudgetMoney / daysRemaining)
+        .details-list {
+            font-size: 0.825rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 12px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+        }
 
-  const expensesByCategory = Object.keys(categories).map(catName => {
-    const total = monthTransactions
-      .filter(tr => tr.category === catName && Number(tr.amount) < 0)
-      .reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
-    return { name: catName, total, ...categories[catName] }
-  }).filter(cat => cat.total > 0)
+        .details-item {
+            display: flex;
+            justify-content: space-between;
+        }
 
-  const totalCatExpense = expensesByCategory.reduce((sum, c) => sum + c.total, 0) || 1
+        /* Dynamic RTL Adjustments */
+        html[dir="rtl"] .floating-nav-container {
+            transform: translateX(50%);
+        }
+    </style>
+</head>
+<body>
 
-  let healthScore = 88
-  if (totalExpense > totalIncome && totalIncome > 0) healthScore = 48
-  else if (totalExpense > totalCategoryLimits && totalCategoryLimits > 0) healthScore = 65
-  else if (netBalance > 3000) healthScore = 96
-
-  const filteredTransactions = monthTransactions.filter(tr => 
-    tr.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (tr.category && tr.category.includes(searchTerm))
-  )
-
-  const bgApp = theme === 'dark' ? '#090d16' : '#f8fafc'
-  const cardBg = theme === 'dark' ? '#121929' : '#ffffff'
-  const textMain = theme === 'dark' ? '#f8fafc' : '#0f172a'
-  const textMuted = theme === 'dark' ? '#94a3b8' : '#64748b'
-  const borderColor = theme === 'dark' ? '#1e293b' : '#e2e8f0'
-  const inputBg = theme === 'dark' ? '#0b111e' : '#f1f5f9'
-
-  if (isLocked) {
-    return (
-      <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '24px', background: bgApp, color: textMain, fontFamily: '-apple-system, sans-serif', direction: isRTL ? 'rtl' : 'ltr' }}>
-        <div style={{ background: cardBg, padding: '36px 28px', borderRadius: '32px', width: '100%', border: `1px solid ${borderColor}`, textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-          <div style={{ fontSize: '56px', marginBottom: '16px' }}>🛡️</div>
-          <h2 style={{ fontSize: '22px', fontWeight: '900', marginBottom: '8px' }}>{t.securityTitle}</h2>
-          <p style={{ fontSize: '13px', color: textMuted, marginBottom: '24px' }}>{t.lockScreenTitle}</p>
-          <input
-            type="password"
-            maxLength="4"
-            value={passcode}
-            onChange={(e) => setPasscode(e.target.value)}
-            placeholder="••••"
-            style={{ width: '180px', textAlign: 'center', fontSize: '28px', letterSpacing: '12px', padding: '14px', borderRadius: '18px', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, outline: 'none', marginBottom: '24px' }}
-          />
-          <button
-            onClick={() => { if (passcode === '1234' || passcode === '') setIsLocked(false); else alert('קוד שגוי (נסה 1234)'); }}
-            style={{ background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff', border: 'none', padding: '16px 24px', borderRadius: '18px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', width: '100%', boxShadow: '0 10px 25px rgba(37,99,235,0.4)' }}
-          >
-            {t.unlockBtn}
-          </button>
+    <header>
+        <div class="brand">
+            <div class="brand-icon">N</div>
+            <div class="brand-title">Nest Budget</div>
         </div>
-      </div>
-    )
-  }
 
-  // SVG Donut math
-  let cumulativeAngle = 0
-  const radius = 65
-  const circumference = 2 * Math.PI * radius
+        <div class="controls-group">
+            <select id="currencySelector" onchange="changeCurrency(this.value)">
+                <option value="USD">USD ($)</option>
+                <option value="ILS">ILS (₪)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="CAD">CAD ($)</option>
+                <option value="AUD">AUD ($)</option>
+                <option value="JPY">JPY (¥)</option>
+                <option value="CNY">CNY (¥)</option>
+                <option value="RUB">RUB (₽)</option>
+                <option value="BRL">BRL (R$)</option>
+                <option value="CHF">CHF (CHF)</option>
+            </select>
 
-  return (
-    <div style={{ maxWidth: '480px', margin: '0 auto', minHeight: '100vh', padding: '16px 16px 120px 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', direction: isRTL ? 'rtl' : 'ltr', textAlign: isRTL ? 'right' : 'left', background: bgApp, color: textMain, boxSizing: 'border-box' }}>
-      
-      {/* Header */}
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', paddingBottom: '12px', borderBottom: `1px solid ${borderColor}` }}>
-        <div>
-          <h1 style={{ color: textMain, margin: 0, fontSize: '20px', fontWeight: '900', letterSpacing: '-0.5px' }}>MoneyClimb ⚡</h1>
-          <span style={{ color: textMuted, fontSize: '11px', fontWeight: '600' }}>{t.tagline}</span>
+            <select id="languageSelector" onchange="changeLanguage(this.value)">
+                <option value="en" selected>English</option>
+                <option value="he">עברית</option>
+                <option value="ar">العربية</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+                <option value="de">Deutsch</option>
+                <option value="it">Italiano</option>
+                <option value="pt">Português</option>
+                <option value="ru">Русский</option>
+                <option value="zh">中文</option>
+                <option value="ja">日本語</option>
+            </select>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <button
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '8px 12px', borderRadius: '14px', cursor: 'pointer', fontSize: '13px' }}
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
+    </header>
+
+    <div class="container">
+        <!-- Overview Grid -->
+        <div class="metrics-grid">
+            <div class="square-card">
+                <div class="card-label" data-i18n="totalSavings">Total Savings Goal</div>
+                <div class="card-value" id="totalSavingsVal">$0.00</div>
+                <span class="badge" data-i18n="couplePlan">Couple Account Active</span>
+            </div>
+            <div class="square-card">
+                <div class="card-label" data-i18n="monthlyDebitTotal">Total Standing Orders</div>
+                <div class="card-value" id="totalDebitVal">$0.00</div>
+                <span class="badge" data-i18n="autoMonthly">Auto-deducted monthly</span>
+            </div>
         </div>
-      </header>
 
-      {/* Month Selector */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', background: cardBg, padding: '8px 14px', borderRadius: '18px', border: `1px solid ${borderColor}` }}>
-        <span style={{ fontSize: '12px', fontWeight: 'bold', color: textMuted }}>חודש דוח:</span>
-        <input
-          type="month"
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          style={{ background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '6px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', outline: 'none', cursor: 'pointer' }}
-        />
-      </div>
-
-      {/* TAB 1: DASHBOARD (MoneyClimb Clean Overview) */}
-      {activeTab === 'dashboard' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          {/* Main Net Worth Banner */}
-          <div style={{ background: 'linear-gradient(135deg, #1e293b, #0f172a)', padding: '20px 22px', borderRadius: '26px', border: `1px solid ${borderColor}`, color: '#ffffff', boxShadow: '0 20px 30px rgba(0,0,0,0.3)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700' }}>הון עצמי כולל (Net Worth)</span>
-              <span style={{ background: healthScore > 75 ? '#10b98133' : '#f59e0b33', color: healthScore > 75 ? '#34d399' : '#fbbf24', padding: '4px 10px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }}>
-                בריאות: {healthScore}/100
-              </span>
-            </div>
-            <div style={{ fontSize: '32px', fontWeight: '900', color: '#38bdf8', margin: '8px 0 14px 0', letterSpacing: '-1px' }}>
-              {formatMoney(netWorthTotal)}
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', borderTop: '1px solid #334155', paddingTop: '12px', fontSize: '12px' }}>
-              <div>נכסים: <strong style={{ color: '#34d399' }}>{formatMoney(totalAssetsVal)}</strong></div>
-              <div>חובות: <strong style={{ color: '#f87171' }}>-{formatMoney(totalLiabilitiesVal)}</strong></div>
-            </div>
-          </div>
-
-          {/* 2x2 Grid Stats Widgets */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            
-            {/* Income Card */}
-            <div style={{ background: cardBg, padding: '16px', borderRadius: '20px', border: `1px solid ${borderColor}` }}>
-              <div style={{ fontSize: '11px', color: textMuted, fontWeight: 'bold', marginBottom: '4px' }}>הכנסות החודש 📈</div>
-              <div style={{ fontSize: '20px', fontWeight: '900', color: '#10b981' }}>+{formatMoney(totalIncome)}</div>
-            </div>
-
-            {/* Expenses Card */}
-            <div style={{ background: cardBg, padding: '16px', borderRadius: '20px', border: `1px solid ${borderColor}` }}>
-              <div style={{ fontSize: '11px', color: textMuted, fontWeight: 'bold', marginBottom: '4px' }}>הוצאות החודש 📉</div>
-              <div style={{ fontSize: '20px', fontWeight: '900', color: '#ef4444' }}>-{formatMoney(totalExpense)}</div>
-            </div>
-
-            {/* Net Balance Card */}
-            <div style={{ background: cardBg, padding: '16px', borderRadius: '20px', border: `1px solid ${borderColor}` }}>
-              <div style={{ fontSize: '11px', color: textMuted, fontWeight: 'bold', marginBottom: '4px' }}>מאזן נקי ⚖️</div>
-              <div style={{ fontSize: '20px', fontWeight: '900', color: netBalance >= 0 ? '#10b981' : '#ef4444' }}>{formatMoney(netBalance)}</div>
-            </div>
-
-            {/* Safe Daily Spend Card */}
-            <div style={{ background: cardBg, padding: '16px', borderRadius: '20px', border: `1px solid ${borderColor}` }}>
-              <div style={{ fontSize: '11px', color: textMuted, fontWeight: 'bold', marginBottom: '4px' }}>תקציב יומי בטוח 🛡️</div>
-              <div style={{ fontSize: '20px', fontWeight: '900', color: '#3b82f6' }}>{formatMoney(dailySafeSpend)}</div>
-            </div>
-          </div>
-
-          {/* Recent Activity Quick Preview */}
-          <div style={{ background: cardBg, padding: '20px', borderRadius: '24px', border: `1px solid ${borderColor}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '800' }}>תנועות אחרונות 💳</h3>
-              <button onClick={() => setActiveTab('transactions')} style={{ background: 'transparent', border: 'none', color: '#3b82f6', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>הצג הכל ←</button>
-            </div>
-            {monthTransactions.slice(0, 4).length === 0 ? (
-              <p style={{ color: textMuted, fontSize: '12px', textAlign: 'center', margin: '12px 0' }}>{t.noTransactions}</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {monthTransactions.slice(0, 4).map(tr => {
-                  const isInc = Number(tr.amount) > 0
-                  return (
-                    <div key={tr.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: inputBg, padding: '10px 14px', borderRadius: '14px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '16px' }}>{isInc ? '📈' : (categories[tr.category]?.icon || '📉')}</span>
-                        <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{tr.title}</span>
-                      </div>
-                      <span style={{ fontSize: '13px', fontWeight: '900', color: isInc ? '#10b981' : textMain }}>
-                        {isInc ? `+${formatMoney(tr.amount)}` : formatMoney(tr.amount)}
-                      </span>
+        <!-- Form Section -->
+        <div class="form-card">
+            <h2 class="form-title" data-i18n="addGoalTitle">Define Savings Target & Standing Order</h2>
+            <form id="goalForm" onsubmit="handleFormSubmit(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label data-i18n="goalNameLabel">Savings Goal Name</label>
+                        <input type="text" id="goalName" required placeholder="e.g. Home Downpayment">
                     </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+                    <div class="form-group">
+                        <label data-i18n="targetAmountLabel">Target Amount</label>
+                        <input type="number" id="targetAmount" required min="1" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="targetDateLabel">Savings Target Date</label>
+                        <input type="date" id="targetDate" required>
+                    </div>
 
-      {/* TAB 2: CHARTS & ANALYTICS PAGE (MoneyClimb Styled Square Grid Cards) */}
-      {activeTab === 'charts' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          {/* Chart Card 1: Donut Expense Breakdown */}
-          <div style={{ background: cardBg, padding: '20px', borderRadius: '24px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: '800' }}>📊 התפלגות הוצאות לפי קטגוריה</h3>
-            {expensesByCategory.length === 0 ? (
-              <p style={{ color: textMuted, fontSize: '12px', textAlign: 'center' }}>אין מספיק נתונים להצגת תרשים</p>
-            ) : (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', margin: '14px 0' }}>
-                  <svg width="150" height="150" viewBox="0 0 150 150" style={{ transform: 'rotate(-90deg)' }}>
-                    {expensesByCategory.map((cat, idx) => {
-                      const percentage = cat.total / totalCatExpense
-                      const strokeDasharray = `${percentage * circumference} ${circumference}`
-                      const strokeDashoffset = -cumulativeAngle * circumference
-                      cumulativeAngle += percentage
-                      return (
-                        <circle
-                          key={idx}
-                          cx="75"
-                          cy="75"
-                          r={radius}
-                          fill="transparent"
-                          stroke={cat.color || '#3b82f6'}
-                          strokeWidth="20"
-                          strokeDasharray={strokeDasharray}
-                          strokeDashoffset={strokeDashoffset}
-                          style={{ transition: 'stroke-dasharray 0.5s ease' }}
-                        />
-                      )
-                    })}
-                  </svg>
-                  <div style={{ position: 'absolute', textAlign: 'center' }}>
-                    <div style={{ fontSize: '10px', color: textMuted }}>סה"כ הוצאות</div>
-                    <div style={{ fontSize: '15px', fontWeight: '900' }}>{formatMoney(totalExpense)}</div>
-                  </div>
+                    <div class="form-group full-width checkbox-group">
+                        <input type="checkbox" id="hasStandingOrder" onchange="toggleStandingOrderFields(this.checked)">
+                        <label for="hasStandingOrder" data-i18n="enableStandingOrder">Enable Direct Debit / Standing Order (הוראת קבע)</label>
+                    </div>
+
+                    <div class="form-group" id="debitAmountGroup" style="display: none;">
+                        <label data-i18n="monthlyDebitLabel">Monthly Standing Order Amount</label>
+                        <input type="number" id="monthlyDebitAmount" min="0" step="any">
+                    </div>
+                    <div class="form-group" id="debitEndGroup" style="display: none;">
+                        <label data-i18n="debitEndDateLabel">Standing Order End Date</label>
+                        <input type="date" id="debitEndDate">
+                    </div>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px' }}>
-                  {expensesByCategory.map((cat, idx) => (
-                    <div key={idx} style={{ background: inputBg, padding: '8px 10px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 'bold' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: cat.color }}></span>
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat.icon} {cat.name}</span>
-                      <span>{Math.round((cat.total / totalCatExpense) * 100)}%</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Chart Card 2: Income vs Expense Visual Bar */}
-          <div style={{ background: cardBg, padding: '20px', borderRadius: '24px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: '800' }}>⚖️ יחס הכנסות מול הוצאות</h3>
-            {totalIncome === 0 && totalExpense === 0 ? (
-              <p style={{ color: textMuted, fontSize: '12px', textAlign: 'center' }}>אין תנועות בחודש זה</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
-                    <span>הכנסות ({formatMoney(totalIncome)})</span>
-                    <span style={{ color: '#10b981', fontWeight: 'bold' }}>
-                      {Math.round((totalIncome / (totalIncome + totalExpense || 1)) * 100)}%
-                    </span>
-                  </div>
-                  <div style={{ width: '100%', height: '12px', background: inputBg, borderRadius: '6px', overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.min((totalIncome / (totalIncome + totalExpense || 1)) * 100, 100)}%`, height: '100%', background: '#10b981', borderRadius: '6px' }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
-                    <span>הוצאות ({formatMoney(totalExpense)})</span>
-                    <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
-                      {Math.round((totalExpense / (totalIncome + totalExpense || 1)) * 100)}%
-                    </span>
-                  </div>
-                  <div style={{ width: '100%', height: '12px', background: inputBg, borderRadius: '6px', overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.min((totalExpense / (totalIncome + totalExpense || 1)) * 100, 100)}%`, height: '100%', background: '#ef4444', borderRadius: '6px' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Chart Card 3: Budget Usage Square Widgets */}
-          <div style={{ background: cardBg, padding: '20px', borderRadius: '24px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: '800' }}>🎯 ניצול תקציב לפי קטגוריה</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-              {Object.keys(categories).map(catName => {
-                const cat = categories[catName]
-                const spent = monthTransactions.filter(tr => tr.category === catName && Number(tr.amount) < 0).reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
-                const pct = cat.limit > 0 ? Math.min(Math.round((spent / cat.limit) * 100), 100) : 0
-                return (
-                  <div key={catName} style={{ background: inputBg, padding: '12px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-                    <div style={{ fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>{cat.icon} {catName}</div>
-                    <div style={{ fontSize: '11px', color: textMuted, marginBottom: '6px' }}>{formatMoney(spent)} / {formatMoney(cat.limit)}</div>
-                    <div style={{ width: '100%', height: '6px', background: cardBg, borderRadius: '3px', overflow: 'hidden' }}>
-                      <div style={{ width: `${pct}%`, height: '100%', background: pct > 90 ? '#ef4444' : cat.color }}></div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-        </div>
-      )}
-
-      {/* TAB 3: TRANSACTIONS */}
-      {activeTab === 'transactions' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <input
-            type="text"
-            placeholder={t.searchPlaceholder}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px 18px', borderRadius: '18px', fontSize: '13px', outline: 'none' }}
-          />
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {filteredTransactions.length === 0 ? (
-              <div style={{ background: cardBg, padding: '36px', borderRadius: '24px', textAlign: 'center', color: textMuted, fontSize: '13px', border: `1px solid ${borderColor}` }}>
-                {t.noTransactions}
-              </div>
-            ) : (
-              filteredTransactions.map(tr => {
-                const isInc = Number(tr.amount) > 0
-                return (
-                  <div key={tr.id} style={{ background: cardBg, padding: '14px 16px', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px solid ${borderColor}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '20px' }}>{isInc ? '📈' : (categories[tr.category]?.icon || '📉')}</span>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: '800' }}>{tr.title}</div>
-                        <div style={{ fontSize: '10px', color: textMuted }}>{tr.created_at ? tr.created_at.slice(0, 10) : ''}</div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '900', color: isInc ? '#10b981' : textMain }}>
-                        {isInc ? `+${formatMoney(tr.amount)}` : formatMoney(tr.amount)}
-                      </span>
-                      <button onClick={() => deleteTransaction(tr.id)} style={{ background: 'transparent', border: 'none', color: textMuted, cursor: 'pointer', fontSize: '14px' }}>✕</button>
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 4: BUDGETS */}
-      {activeTab === 'budgets' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ background: cardBg, padding: '20px', borderRadius: '24px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: '800' }}>{t.smartBudgetTitle} 🎯</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {Object.keys(categories).map(catName => {
-                const cat = categories[catName]
-                const spent = monthTransactions.filter(tr => tr.category === catName && Number(tr.amount) < 0).reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
-                const percentage = cat.limit > 0 ? Math.min(Math.round((spent / cat.limit) * 100), 100) : 0
-                return (
-                  <div key={catName} style={{ background: inputBg, padding: '12px 14px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{cat.icon} {catName}</span>
-                      <input
-                        type="number"
-                        value={cat.limit}
-                        onChange={(e) => setCategories({...categories, [catName]: {...cat, limit: parseFloat(e.target.value) || 0}})}
-                        style={{ width: '80px', background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '4px 8px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', outline: 'none', textAlign: 'center' }}
-                      />
-                    </div>
-                    <div style={{ width: '100%', height: '8px', background: cardBg, borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: `${percentage}%`, height: '100%', background: percentage > 90 ? '#ef4444' : cat.color }}></div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 5: NET WORTH */}
-      {activeTab === 'networth' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ background: cardBg, padding: '20px', borderRadius: '24px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: '800' }}>{t.netWorthTitle}</h3>
-            
-            <form onSubmit={handleAddAsset} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px', background: inputBg, padding: '12px', borderRadius: '16px' }}>
-              <input
-                type="text"
-                placeholder="שם הנכס או החוב"
-                value={assetName}
-                onChange={e => setAssetName(e.target.value)}
-                style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontSize: '12px', outline: 'none' }}
-                required
-              />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <input
-                  type="number"
-                  placeholder="סכום (₪)"
-                  value={assetAmount}
-                  onChange={e => setAssetAmount(e.target.value)}
-                  style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontSize: '12px', outline: 'none' }}
-                  required
-                />
-                <select
-                  value={assetType}
-                  onChange={e => setAssetType(e.target.value)}
-                  style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontSize: '12px', outline: 'none' }}
-                >
-                  <option value="asset">נכס / חיסכון 📈</option>
-                  <option value="liability">חוב / התחייבות 📉</option>
-                </select>
-              </div>
-              <button type="submit" style={{ background: '#3b82f6', color: '#ffffff', border: 'none', padding: '10px', borderRadius: '10px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{t.addAssetBtn}</button>
+                <button type="submit" class="btn-submit" data-i18n="saveGoalBtn">Create Savings Plan</button>
             </form>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {assetsList.map(item => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: inputBg, padding: '12px 14px', borderRadius: '14px' }}>
-                  <div>
-                    <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{item.name}</div>
-                    <span style={{ fontSize: '10px', color: item.type === 'asset' ? '#10b981' : '#ef4444' }}>{item.type === 'asset' ? 'נכס' : 'חוב'}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span style={{ fontSize: '13px', fontWeight: '900', color: item.type === 'asset' ? '#10b981' : '#ef4444' }}>
-                      {item.type === 'asset' ? `+${formatMoney(item.amount)}` : `-${formatMoney(item.amount)}`}
-                    </span>
-                    <button onClick={() => deleteAsset(item.id)} style={{ background: 'transparent', border: 'none', color: textMuted, cursor: 'pointer' }}>✕</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
-      )}
 
-      {/* TAB 6: GOALS */}
-      {activeTab === 'goals' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ background: cardBg, padding: '20px', borderRadius: '24px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: '800' }}>{t.savingsGoalsTitle}</h3>
-            
-            <form onSubmit={handleAddGoal} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '18px', background: inputBg, padding: '12px', borderRadius: '16px' }}>
-              <input
-                type="text"
-                placeholder={t.goalNamePlaceholder}
-                value={newGoalName}
-                onChange={(e) => setNewGoalName(e.target.value)}
-                style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontSize: '12px', outline: 'none' }}
-                required
-              />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <input
-                  type="number"
-                  placeholder={t.goalTargetPlaceholder}
-                  value={newGoalTarget}
-                  onChange={(e) => setNewGoalTarget(e.target.value)}
-                  style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontSize: '12px', outline: 'none' }}
-                  required
-                />
-                <input
-                  type="number"
-                  placeholder={t.goalCurrentPlaceholder}
-                  value={newGoalCurrent}
-                  onChange={(e) => setNewGoalCurrent(e.target.value)}
-                  style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '10px', borderRadius: '10px', fontSize: '12px', outline: 'none' }}
-                />
-              </div>
-              <button type="submit" style={{ background: '#3b82f6', color: '#ffffff', border: 'none', padding: '10px', borderRadius: '10px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{t.addGoalBtn}</button>
-            </form>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {savingsGoals.map(goal => {
-                const target = Number(goal.target_amount) || 1
-                const current = Number(goal.current_amount) || 0
-                const pct = Math.min(Math.round((current / target) * 100), 100)
-
-                return (
-                  <div key={goal.id} style={{ background: inputBg, padding: '14px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '13px', fontWeight: 'bold' }}>🎯 {goal.title}</span>
-                      <button onClick={() => deleteGoal(goal.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', fontSize: '12px', cursor: 'pointer' }}>{t.delete}</button>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: textMuted, marginBottom: '6px' }}>
-                      <span>{formatMoney(current)} / {formatMoney(target)}</span>
-                      <span style={{ fontWeight: 'bold', color: '#10b981' }}>{pct}%</span>
-                    </div>
-                    <div style={{ width: '100%', height: '8px', background: cardBg, borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ width: `${pct}%`, height: '100%', background: '#10b981' }}></div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 7: TOOLS */}
-      {activeTab === 'tools' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ background: cardBg, padding: '20px', borderRadius: '24px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '15px' }}>ייצוא נתונים</h3>
-            <button
-              onClick={exportToCSV}
-              style={{ width: '100%', background: '#10b981', color: '#ffffff', border: 'none', padding: '14px', borderRadius: '14px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
-            >
-              {t.exportCsv}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* FLOATING ACTION BUTTON (+) */}
-      <button
-        onClick={() => setIsModalOpen(true)}
-        style={{ position: 'fixed', bottom: '85px', left: isRTL ? '20px' : 'auto', right: isRTL ? 'auto' : '20px', width: '60px', height: '60px', borderRadius: '30px', background: 'linear-gradient(135deg, #2563eb, #1d4ed8)', color: '#ffffff', border: 'none', fontSize: '30px', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: '0 12px 25px rgba(37, 99, 235, 0.5)', cursor: 'pointer', zIndex: 99 }}
-      >
-        +
-      </button>
-
-      {/* BOTTOM NAVIGATION BAR */}
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: cardBg, borderTop: `1px solid ${borderColor}`, display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', padding: '8px 2px 20px 2px', zIndex: 98, backdropFilter: 'blur(10px)' }}>
-        {[
-          { id: 'dashboard', label: t.dashboard, icon: '🏠' },
-          { id: 'charts', label: t.chartsTab, icon: '📊' },
-          { id: 'transactions', label: t.transactions, icon: '💳' },
-          { id: 'budgets', label: t.budgets, icon: '🎯' },
-          { id: 'networth', label: t.netWorthTab, icon: '🏛️' },
-          { id: 'goals', label: t.goalsTab, icon: '🏆' },
-          { id: 'tools', label: t.tools, icon: '⚙️' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{ background: 'transparent', color: activeTab === tab.id ? '#3b82f6' : textMuted, border: 'none', padding: '4px 0', fontSize: '8px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}
-          >
-            <span style={{ fontSize: '16px' }}>{tab.icon}</span>
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </nav>
-
-      {/* MODAL FOR NEW TRANSACTION */}
-      {isModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '16px' }}>
-          <div style={{ background: cardBg, width: '100%', maxWidth: '400px', padding: '24px', borderRadius: '28px', border: `1px solid ${borderColor}`, boxSizing: 'border-box' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', fontWeight: '900' }}>{t.newTransaction}</h3>
-            
-            <div style={{ marginBottom: '14px' }}>
-              <input type="file" accept="image/*" ref={fileInputRef} onChange={handleReceiptScan} style={{ display: 'none' }} />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current.click()}
-                disabled={isScanning}
-                style={{ width: '100%', background: theme === 'dark' ? '#1f2937' : '#eff6ff', color: '#3b82f6', border: '1px dashed #3b82f6', padding: '12px', borderRadius: '14px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
-              >
-                {isScanning ? t.scanningReceipt : t.scanReceiptBtn}
-              </button>
-            </div>
-
-            <form onSubmit={addTransaction} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: inputBg, padding: '4px', borderRadius: '14px' }}>
-                <button type="button" onClick={() => setType('expense')} style={{ background: type === 'expense' ? '#ef4444' : 'transparent', color: type === 'expense' ? '#ffffff' : textMuted, border: 'none', padding: '10px', borderRadius: '10px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{t.expenseType}</button>
-                <button type="button" onClick={() => setType('income')} style={{ background: type === 'income' ? '#10b981' : 'transparent', color: type === 'income' ? '#ffffff' : textMuted, border: 'none', padding: '10px', borderRadius: '10px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{t.incomeType}</button>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{t.titleLabel}</label>
-                <input type="text" placeholder={t.titlePlaceholder} value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '14px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} required />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{t.amountLabel} (₪)</label>
-                <input type="number" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '14px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }} required />
-              </div>
-
-              {type === 'expense' && (
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>{t.categoryLabel}</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '14px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}>
-                    {Object.keys(categories).map(cat => (
-                      <option key={cat} value={cat}>{categories[cat].icon} {cat}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} style={{ flex: 1, background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px', borderRadius: '14px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>{t.cancel}</button>
-                <button type="submit" style={{ flex: 1, background: '#2563eb', color: '#ffffff', border: 'none', padding: '14px', borderRadius: '14px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>{t.saveButton}</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
+        <!-- Goals Display Grid -->
+        <div class="goals-grid" id="goalsContainer"></div>
     </div>
-  )
-}
+
+    <!-- Floating Navigation Bar -->
+    <div class="floating-nav-container">
+        <nav class="floating-nav">
+            <button class="nav-btn active" data-i18n="tabOverview">Dashboard</button>
+            <button class="nav-btn" data-i18n="tabGoals">Savings Goals</button>
+            <button class="nav-btn" data-i18n="tabDebits">Standing Orders</button>
+        </nav>
+    </div>
+
+    <script>
+        // Rates relative to USD base
+        const exchangeRates = {
+            USD: 1.0,
+            ILS: 3.70,
+            EUR: 0.92,
+            GBP: 0.78,
+            CAD: 1.36,
+            AUD: 1.52,
+            JPY: 155.0,
+            CNY: 7.23,
+            RUB: 90.0,
+            BRL: 5.40,
+            CHF: 0.90
+        };
+
+        const translations = {
+            en: {
+                totalSavings: "Total Savings Target",
+                monthlyDebitTotal: "Monthly Standing Orders",
+                couplePlan: "Couple Account Active",
+                autoMonthly: "Auto-deducted monthly",
+                addGoalTitle: "Define Savings Target & Standing Order",
+                goalNameLabel: "Goal Name",
+                targetAmountLabel: "Target Amount",
+                targetDateLabel: "Savings Target Date",
+                enableStandingOrder: "Enable Direct Debit / Standing Order",
+                monthlyDebitLabel: "Monthly Standing Order Amount",
+                debitEndDateLabel: "Standing Order End Date",
+                saveGoalBtn: "Create Savings Plan",
+                tabOverview: "Dashboard",
+                tabGoals: "Savings",
+                tabDebits: "Direct Debits",
+                targetDateShort: "Target Date",
+                debitEndShort: "Standing Order Ends",
+                monthlyShort: "Monthly Deposit",
+                noDebit: "Manual Savings"
+            },
+            he: {
+                totalSavings: "סה״כ יעד חיסכון",
+                monthlyDebitTotal: "סה״כ הוראות קבע חודשיות",
+                couplePlan: "חשבון זוגי פעיל",
+                autoMonthly: "ירד באופן אוטומטי",
+                addGoalTitle: "הגדרת יעד חיסכון והוראת קבע",
+                goalNameLabel: "שם החיסכון",
+                targetAmountLabel: "סכום היעד",
+                targetDateLabel: "תאריך יעד של החיסכון",
+                enableStandingOrder: "הפעלת הוראת קבע לחיסכון",
+                monthlyDebitLabel: "סכום הוראת הקבע החודשית",
+                debitEndDateLabel: "תאריך גמירת הוראת הקבע",
+                saveGoalBtn: "צור תוכנית חיסכון",
+                tabOverview: "דשבורד",
+                tabGoals: "חסכונות",
+                tabDebits: "הוראות קבע",
+                targetDateShort: "תאריך יעד",
+                debitEndShort: "סיום הוראת קבע",
+                monthlyShort: "הפקדה חודשית",
+                noDebit: "חיסכון ידני"
+            },
+            ar: {
+                totalSavings: "إجمالي هدف التوفير",
+                monthlyDebitTotal: "إجمالي الأوامر المستديمة",
+                couplePlan: "حساب زوجي نشط",
+                autoMonthly: "خصم شهري تلقائي",
+                addGoalTitle: "تحديد هدف التوفير والأمر المستديم",
+                goalNameLabel: "اسم الهدف",
+                targetAmountLabel: "المبلغ المستهدف",
+                targetDateLabel: "تاريخ الهدف",
+                enableStandingOrder: "تفعيل الأمر المستديم (الدفع الاقتطاعי)",
+                monthlyDebitLabel: "مبلغ الأمر المستديم الشهري",
+                debitEndDateLabel: "تاريخ انتهاء الأمر المستديم",
+                saveGoalBtn: "إنشاء خطة التوفير",
+                tabOverview: "لوحة التحكم",
+                tabGoals: "الأهداف",
+                tabDebits: "الأوامر المستديمة",
+                targetDateShort: "تاريخ الهدف",
+                debitEndShort: "انتهاء الأمر المستديم",
+                monthlyShort: "إيداع شهري",
+                noDebit: "توفير يدوي"
+            },
+            es: {
+                totalSavings: "Objetivo de Ahorro Total",
+                monthlyDebitTotal: "Órdenes Permanentes Mensuales",
+                couplePlan: "Cuenta en Pareja Activa",
+                autoMonthly: "Deducido mensualmente",
+                addGoalTitle: "Definir Objetivo y Orden Permanente",
+                goalNameLabel: "Nombre del Objetivo",
+                targetAmountLabel: "Monto Objetivo",
+                targetDateLabel: "Fecha Límite de Ahorro",
+                enableStandingOrder: "Activar Orden Permanente (Débito Directo)",
+                monthlyDebitLabel: "Monto Mensual de Orden Permanente",
+                debitEndDateLabel: "Fecha de Finalización de Orden",
+                saveGoalBtn: "Crear Plan de Ahorro",
+                tabOverview: "Panel",
+                tabGoals: "Metas",
+                tabDebits: "Débitos Directos",
+                targetDateShort: "Fecha Límite",
+                debitEndShort: "Fin de Orden",
+                monthlyShort: "Depósito Mensual",
+                noDebit: "Ahorro Manual"
+            },
+            fr: {
+                totalSavings: "Objectif d'Épargne Total",
+                monthlyDebitTotal: "Prélèvements Automatiques",
+                couplePlan: "Compte de Couple Actif",
+                autoMonthly: "Déduit mensuellement",
+                addGoalTitle: "Définir Objectif et Prélèvement",
+                goalNameLabel: "Nom de l'Objectif",
+                targetAmountLabel: "Montant Cible",
+                targetDateLabel: "Date Cible d'Épargne",
+                enableStandingOrder: "Activer Prélèvement Automatique",
+                monthlyDebitLabel: "Montant du Prélèvement Mensuel",
+                debitEndDateLabel: "Date de Fin du Prélèvement",
+                saveGoalBtn: "Créer un Plan d'Épargne",
+                tabOverview: "Aperçu",
+                tabGoals: "Objectifs",
+                tabDebits: "Prélèvements",
+                targetDateShort: "Date Cible",
+                debitEndShort: "Fin de Prélèvement",
+                monthlyShort: "Dépôt Mensuel",
+                noDebit: "Épargne Manuelle"
+            },
+            de: {
+                totalSavings: "Gesamtes Sparziel",
+                monthlyDebitTotal: "Monatliche Daueraufträge",
+                couplePlan: "Paarkonto Aktiv",
+                autoMonthly: "Monatlich abgebucht",
+                addGoalTitle: "Sparziel & Dauerauftrag Festlegen",
+                goalNameLabel: "Name des Sparziels",
+                targetAmountLabel: "Zielbetrag",
+                targetDateLabel: "Ziel-Datum",
+                enableStandingOrder: "Dauerauftrag (Lastschrift) aktivieren",
+                monthlyDebitLabel: "Monatlicher Dauerauftrag",
+                debitEndDateLabel: "Enddatum des Dauerauftrags",
+                saveGoalBtn: "Sparplan Erstellen",
+                tabOverview: "Übersicht",
+                tabGoals: "Ziele",
+                tabDebits: "Daueraufträge",
+                targetDateShort: "Zieldatum",
+                debitEndShort: "Ende Dauerauftrag",
+                monthlyShort: "Monatliche Rate",
+                noDebit: "Manuelles Sparen"
+            },
+            it: {
+                totalSavings: "Obiettivo di Risparmio Totale",
+                monthlyDebitTotal: "Ordini Permanenti Mensili",
+                couplePlan: "Conto di Coppia Attivo",
+                autoMonthly: "Addebito mensile",
+                addGoalTitle: "Definisci Obiettivo e Ordine Permanente",
+                goalNameLabel: "Nome Obiettivo",
+                targetAmountLabel: "Importo Target",
+                targetDateLabel: "Data Target Risparmio",
+                enableStandingOrder: "Attiva Addebito Diretto / Ordine Permanente",
+                monthlyDebitLabel: "Importo Mensile Addebito",
+                debitEndDateLabel: "Data Fine Addebito",
+                saveGoalBtn: "Crea Piano di Risparmio",
+                tabOverview: "Dashboard",
+                tabGoals: "Obiettivi",
+                tabDebits: "Addebiti",
+                targetDateShort: "Data Target",
+                debitEndShort: "Fine Addebito",
+                monthlyShort: "Deposito Mensile",
+                noDebit: "Risparmio Manuale"
+            },
+            pt: {
+                totalSavings: "Meta de Poupança Total",
+                monthlyDebitTotal: "Débitos Diretos Mensais",
+                couplePlan: "Conta Conjunta Ativa",
+                autoMonthly: "Deduzido mensalmente",
+                addGoalTitle: "Definir Meta e Débito Direto",
+                goalNameLabel: "Nome da Meta",
+                targetAmountLabel: "Valor Meta",
+                targetDateLabel: "Data Limite da Meta",
+                enableStandingOrder: "Ativar Débito Direto / Ordem Permanente",
+                monthlyDebitLabel: "Valor Mensal do Débito",
+                debitEndDateLabel: "Data Término do Débito",
+                saveGoalBtn: "Criar Plano de Poupança",
+                tabOverview: "Painel",
+                tabGoals: "Metas",
+                tabDebits: "Débitos",
+                targetDateShort: "Data Limite",
+                debitEndShort: "Fim do Débito",
+                monthlyShort: "Depósito Mensal",
+                noDebit: "Poupança Manual"
+            },
+            ru: {
+                totalSavings: "Общая Цель Накоплений",
+                monthlyDebitTotal: "Ежемесячные Автоплатежи",
+                couplePlan: "Совместный Счет Активен",
+                autoMonthly: "Списывается ежемесячно",
+                addGoalTitle: "Настроить Накопления и Автоплатеж",
+                goalNameLabel: "Название Цели",
+                targetAmountLabel: "Целевая Сумма",
+                targetDateLabel: "Дата Окончания Накопления",
+                enableStandingOrder: "Включить Автоплатеж (הוראת קבע)",
+                monthlyDebitLabel: "Сумма Ежемесячного Платежа",
+                debitEndDateLabel: "Дата Окончания Автоплатежа",
+                saveGoalBtn: "Создать План Накоплений",
+                tabOverview: "Обзор",
+                tabGoals: "Цели",
+                tabDebits: "Автоплатежи",
+                targetDateShort: "Срок Цели",
+                debitEndShort: "Конец Автоплатежа",
+                monthlyShort: "Взнос в Месяц",
+                noDebit: "Ручные Взносы"
+            },
+            zh: {
+                totalSavings: "总储蓄目标",
+                monthlyDebitTotal: "每月自动扣款总额",
+                couplePlan: "情侣/夫妻共同账户已激活",
+                autoMonthly: "每月自动扣除",
+                addGoalTitle: "设定储蓄目标与定额扣款",
+                goalNameLabel: "目标名称",
+                targetAmountLabel: "目标金额",
+                targetDateLabel: "储蓄截止日期",
+                enableStandingOrder: "开启定期自动扣款 (Direct Debit)",
+                monthlyDebitLabel: "每月扣款金额",
+                debitEndDateLabel: "自动扣款结束日期",
+                saveGoalBtn: "创建储蓄计划",
+                tabOverview: "仪表盘",
+                tabGoals: "储蓄目标",
+                tabDebits: "自动扣款",
+                targetDateShort: "目标日期",
+                debitEndShort: "扣款结束",
+                monthlyShort: "每月存入",
+                noDebit: "手动储蓄"
+            },
+            ja: {
+                totalSavings: "総貯蓄目標額",
+                monthlyDebitTotal: "毎月の口座振替合計",
+                couplePlan: "カップル口座アクティブ",
+                autoMonthly: "毎月自動引き落とし",
+                addGoalTitle: "貯蓄目標と自動振替の設定",
+                goalNameLabel: "目標名",
+                targetAmountLabel: "目標金額",
+                targetDateLabel: "貯蓄目標期限",
+                enableStandingOrder: "自動口座振替を有効化",
+                monthlyDebitLabel: "毎月の振替金額",
+                debitEndDateLabel: "口座振替終了日",
+                saveGoalBtn: "貯蓄プランを作成",
+                tabOverview: "ダッシュボード",
+                tabGoals: "貯蓄目標",
+                tabDebits: "口座振替",
+                targetDateShort: "目標日",
+                debitEndShort: "振替終了日",
+                monthlyShort: "毎月の積立",
+                noDebit: "手動貯蓄"
+            }
+        };
+
+        let currentLang = 'en';
+        let currentCurrency = 'USD';
+        let goals = [];
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const isRtl = lang === 'he' || lang === 'ar';
+            document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+            document.documentElement.lang = lang;
+
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            renderGoals();
+            updateMetrics();
+        }
+
+        function changeCurrency(currency) {
+            currentCurrency = currency;
+            renderGoals();
+            updateMetrics();
+        }
+
+        function formatCurrency(valInUSD) {
+            const convertedVal = valInUSD * exchangeRates[currentCurrency];
+            return new Intl.NumberFormat(currentLang, {
+                style: 'currency',
+                currency: currentCurrency
+            }).format(convertedVal);
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return new Intl.DateTimeFormat(currentLang, { dateStyle: 'medium' }).format(date);
+        }
+
+        function toggleStandingOrderFields(checked) {
+            document.getElementById('debitAmountGroup').style.display = checked ? 'flex' : 'none';
+            document.getElementById('debitEndGroup').style.display = checked ? 'flex' : 'none';
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('goalName').value;
+            const targetAmount = parseFloat(document.getElementById('targetAmount').value);
+            const targetDate = document.getElementById('targetDate').value;
+            const hasStandingOrder = document.getElementById('hasStandingOrder').checked;
+            const monthlyDebit = hasStandingOrder ? parseFloat(document.getElementById('monthlyDebitAmount').value || 0) : 0;
+            const debitEndDate = hasStandingOrder ? document.getElementById('debitEndDate').value : null;
+
+            // Convert inputs into Base USD for internal store
+            const rate = exchangeRates[currentCurrency];
+            const newGoal = {
+                id: Date.now(),
+                name,
+                targetAmountUSD: targetAmount / rate,
+                targetDate,
+                hasStandingOrder,
+                monthlyDebitUSD: monthlyDebit / rate,
+                debitEndDate
+            };
+
+            goals.push(newGoal);
+            document.getElementById('goalForm').reset();
+            toggleStandingOrderFields(false);
+
+            renderGoals();
+            updateMetrics();
+        }
+
+        function updateMetrics() {
+            const totalTargetUSD = goals.reduce((sum, g) => sum + g.targetAmountUSD, 0);
+            const totalDebitUSD = goals.reduce((sum, g) => sum + (g.monthlyDebitUSD || 0), 0);
+
+            document.getElementById('totalSavingsVal').textContent = formatCurrency(totalTargetUSD);
+            document.getElementById('totalDebitVal').textContent = formatCurrency(totalDebitUSD);
+        }
+
+        function renderGoals() {
+            const container = document.getElementById('goalsContainer');
+            container.innerHTML = '';
+
+            const t = translations[currentLang];
+
+            goals.forEach(goal => {
+                const card = document.createElement('div');
+                card.className = 'goal-item-card';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="goal-header">
+                            <h3 style="font-size:1.1rem;">${goal.name}</h3>
+                            <span class="badge">${goal.hasStandingOrder ? t.tabDebits : t.noDebit}</span>
+                        </div>
+                        <div style="font-size:1.4rem; font-weight:700;">${formatCurrency(goal.targetAmountUSD)}</div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" style="width: 25%"></div>
+                        </div>
+                    </div>
+                    <div class="details-list">
+                        <div class="details-item">
+                            <span>${t.targetDateShort}:</span>
+                            <strong>${formatDate(goal.targetDate)}</strong>
+                        </div>
+                        ${goal.hasStandingOrder ? `
+                            <div class="details-item">
+                                <span>${t.monthlyShort}:</span>
+                                <strong>${formatCurrency(goal.monthlyDebitUSD)}</strong>
+                            </div>
+                            <div class="details-item">
+                                <span>${t.debitEndShort}:</span>
+                                <strong>${formatDate(goal.debitEndDate)}</strong>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize default view
+        changeLanguage('en');
+    </script>
+</body>
+</html>
