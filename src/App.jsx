@@ -1,14 +1,15 @@
-// name=gemini-code-elite-finance.js
+// name=elite-finance-app.js
 import React, { useState, useEffect, useRef } from 'react'
 import { supabase } from './supabaseClient'
 
 const TRANSLATIONS = {
   en: {
-    appName: 'My Money Elite',
-    tagline: 'Next-Gen Financial Intelligence',
+    appName: 'Elite Finance',
+    tagline: 'Advanced Money Intelligence',
     dashboard: 'Overview',
     transactions: 'Transactions',
-    budgets: 'Budgets',
+    budgets: 'Budgets & Limits',
+    goalsTab: 'Savings Goals',
     tools: 'Analytics & Hub',
     netBalance: 'Net Monthly Balance',
     income: 'Income',
@@ -31,17 +32,22 @@ const TRANSLATIONS = {
     saveButton: 'Save Transaction',
     subscriptionRadar: 'Subscription & Standing Orders Radar',
     yearlyTotal: 'Total yearly commitment:',
-    smartBudgetTitle: 'Smart Monthly Budget & Limits',
+    smartBudgetTitle: 'Category Budgets & Limits',
     totalMonthlyBudgetLabel: 'Total Monthly Budget Limit',
     scanReceiptBtn: '📸 Scan Receipt with AI',
     scanningReceipt: 'Analyzing receipt with AI...',
     scanSuccess: 'Receipt successfully analyzed!',
-    challengeModeTitle: '🔥 Aggressive Saving Challenge',
-    challengeModeDesc: 'Cuts daily safe spend by 20% to boost savings rapidly.',
+    savingsGoalsTitle: '🎯 Smart Savings Goals',
+    goalNamePlaceholder: 'Goal Name (e.g. New Car)',
+    goalTargetPlaceholder: 'Target Amount (₪)',
+    goalCurrentPlaceholder: 'Already Saved (₪)',
+    addGoalBtn: 'Add Savings Goal',
+    estCompletion: 'Estimated Target Date:',
+    monthsToGoal: 'Months remaining:',
     creditCardsTitle: '💳 Credit Cards Management',
     addCardBtn: 'Add Card',
     cardNamePlaceholder: 'Card Name (e.g. Visa Cal)',
-    securityTitle: '🔒 Biometric / Passcode Lock',
+    securityTitle: '🔒 Passcode Lock',
     lockScreenTitle: 'Locked - Enter Passcode (1234)',
     unlockBtn: 'Unlock App',
     notificationsTitle: '🔔 Smart Budget Alerts',
@@ -50,11 +56,12 @@ const TRANSLATIONS = {
     delete: 'Delete'
   },
   he: {
-    appName: 'My Money Elite',
-    tagline: 'מודיעין פיננסי מתקדם לדור הבא',
+    appName: 'Elite Finance',
+    tagline: 'מודיעין פיננסי חכם ומתקדם',
     dashboard: 'סקירה כללית',
     transactions: 'תנועות',
-    budgets: 'יעדים ותקציב',
+    budgets: 'תקציבים ויעדים',
+    goalsTab: 'יעדי חיסכון',
     tools: 'מרכז ניתוחים',
     netBalance: 'מאזן חודשי נקי',
     income: 'הכנסות',
@@ -77,13 +84,18 @@ const TRANSLATIONS = {
     saveButton: 'שמור תנועה',
     subscriptionRadar: 'רדאר מנויים והוראות קבע',
     yearlyTotal: 'עלות שנתית מצטברת:',
-    smartBudgetTitle: 'תקציב חודשי חכם ומגבלות',
+    smartBudgetTitle: 'הגדרת תקציב לכל קטגוריה',
     totalMonthlyBudgetLabel: 'מסגרת תקציב חודשית כוללת',
     scanReceiptBtn: '📸 סרוק חשבונית עם AI',
     scanningReceipt: 'מנתח חשבונית באמצעות בינה מלאכותית...',
     scanSuccess: 'החשבונית פוענחה בהצלחה!',
-    challengeModeTitle: '🔥 אתגר חיסכון אגרסיבי',
-    challengeModeDesc: 'מהדק את החגורה ומפחית את התקציב היומי ב-20%.',
+    savingsGoalsTitle: '🎯 יעדי חיסכון חכמים ותחזית תאריך',
+    goalNamePlaceholder: 'שם היעד (למשל: רכב חדש)',
+    goalTargetPlaceholder: 'סכום יעד (₪)',
+    goalCurrentPlaceholder: 'חסכתי כבר (₪)',
+    addGoalBtn: 'הוסף יעד חיסכון',
+    estCompletion: 'תאריך יעד משוער להשלמה:',
+    monthsToGoal: 'חודשים שנותרו:',
     creditCardsTitle: '💳 ניהול כרטיסי אשראי וימי חיוב',
     addCardBtn: 'הוסף כרטיס',
     cardNamePlaceholder: 'שם הכרטיס (למשל: ויזה כאל)',
@@ -131,6 +143,7 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState('dashboard')
   const [transactions, setTransactions] = useState([])
+  const [savingsGoals, setSavingsGoals] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -142,10 +155,13 @@ export default function App() {
   const [isRecurring, setIsRecurring] = useState(false)
   const [recurringEndDate, setRecurringEndDate] = useState('')
 
+  // New goal inputs
+  const [newGoalName, setNewGoalName] = useState('')
+  const [newGoalTarget, setNewGoalTarget] = useState('')
+  const [newGoalCurrent, setNewGoalCurrent] = useState('')
+
   const [isScanning, setIsScanning] = useState(false)
   const fileInputRef = useRef(null)
-
-  const [challengeMode, setChallengeMode] = useState(false)
 
   const [creditCards, setCreditCards] = useState(() => {
     const saved = localStorage.getItem('mymoney_cards')
@@ -154,10 +170,6 @@ export default function App() {
   const [newCardName, setNewCardName] = useState('')
   const [newCardBillingDay, setNewCardBillingDay] = useState('10')
 
-  const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(() => {
-    const saved = localStorage.getItem('mymoney_monthly_budget')
-    return saved !== null ? Number(saved) : 9000
-  })
   const [categories, setCategories] = useState(() => {
     const saved = localStorage.getItem('mymoney_categories')
     return saved ? JSON.parse(saved) : INITIAL_CATEGORIES
@@ -168,18 +180,19 @@ export default function App() {
 
   useEffect(() => { localStorage.setItem('mymoney_lang', lang) }, [lang])
   useEffect(() => { localStorage.setItem('mymoney_theme', theme) }, [theme])
-  useEffect(() => { localStorage.setItem('mymoney_monthly_budget', monthlyBudgetLimit) }, [monthlyBudgetLimit])
   useEffect(() => { localStorage.setItem('mymoney_categories', JSON.stringify(categories)) }, [categories])
   useEffect(() => { localStorage.setItem('mymoney_cards', JSON.stringify(creditCards)) }, [creditCards])
 
   useEffect(() => {
-    fetchTransactions()
+    fetchData()
   }, [])
 
-  async function fetchTransactions() {
-    const { data, error } = await supabase.from('expenses').select('*').order('created_at', { ascending: false })
-    if (error) console.log('Error fetching:', error)
-    else setTransactions(data || [])
+  async function fetchData() {
+    const { data: txData, error: txError } = await supabase.from('expenses').select('*').order('created_at', { ascending: false })
+    if (!txError) setTransactions(txData || [])
+
+    const { data: goalData, error: goalError } = await supabase.from('savings_goals').select('*')
+    if (!goalError) setSavingsGoals(goalData || [])
   }
 
   async function addTransaction(e) {
@@ -218,6 +231,41 @@ export default function App() {
     if (!error) {
       setTransactions(transactions.filter(item => item.id !== id))
     }
+  }
+
+  async function handleAddGoal(e) {
+    e.preventDefault()
+    if (!newGoalName || !newGoalTarget) return
+
+    const { data, error } = await supabase
+      .from('savings_goals')
+      .insert([{
+        title: newGoalName.trim(),
+        target_amount: parseFloat(newGoalTarget),
+        current_amount: parseFloat(newGoalCurrent || 0)
+      }])
+      .select()
+
+    if (!error && data) {
+      setSavingsGoals([...savingsGoals, data[0]])
+      setNewGoalName('')
+      setNewGoalTarget('')
+      setNewGoalCurrent('')
+    }
+  }
+
+  async function deleteGoal(id) {
+    const { error } = await supabase.from('savings_goals').delete().eq('id', id)
+    if (!error) {
+      setSavingsGoals(savingsGoals.filter(g => g.id !== id))
+    }
+  }
+
+  function handleCategoryLimitChange(catName, newLimit) {
+    setCategories({
+      ...categories,
+      [catName]: { ...categories[catName], limit: parseFloat(newLimit) || 0 }
+    })
   }
 
   function handleAddCard(e) {
@@ -287,9 +335,10 @@ export default function App() {
   const daysInMonth = new Date(selectedMonth.slice(0, 4), selectedMonth.slice(5, 7), 0).getDate()
   const currentDay = selectedMonth === getCurrentMonthString() ? new Date().getDate() : 1
   const daysRemaining = Math.max(daysInMonth - currentDay + 1, 1)
-  const remainingBudgetMoney = Math.max(monthlyBudgetLimit - totalExpense, 0)
-  let dailySafeSpend = Math.round(remainingBudgetMoney / daysRemaining)
-  if (challengeMode) dailySafeSpend = Math.round(dailySafeSpend * 0.8)
+  
+  const totalCategoryLimits = Object.values(categories).reduce((sum, c) => sum + (c.limit || 0), 0)
+  const remainingBudgetMoney = Math.max(totalCategoryLimits - totalExpense, 0)
+  const dailySafeSpend = Math.round(remainingBudgetMoney / daysRemaining)
 
   const recurringExpenses = monthTransactions.filter(tr => tr.is_recurring && Number(tr.amount) < 0)
   const totalRecurringYearly = recurringExpenses.reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0) * 12
@@ -303,10 +352,9 @@ export default function App() {
 
   const totalCatExpense = expensesByCategory.reduce((sum, c) => sum + c.total, 0) || 1
 
-  // Financial Health Score calculation (0 - 100)
   let healthScore = 85
   if (totalExpense > totalIncome && totalIncome > 0) healthScore = 45
-  else if (totalExpense > monthlyBudgetLimit) healthScore = 60
+  else if (totalExpense > totalCategoryLimits) healthScore = 60
   else if (netBalance > 3000) healthScore = 95
 
   const budgetAlerts = Object.keys(categories).map(catName => {
@@ -355,7 +403,7 @@ export default function App() {
     )
   }
 
-  // SVG Donut Chart generation math
+  // SVG Donut calculation math
   let cumulativeAngle = 0
   const radius = 70
   const circumference = 2 * Math.PI * radius
@@ -417,7 +465,6 @@ export default function App() {
       {/* TAB 1: DASHBOARD */}
       {activeTab === 'dashboard' && (
         <div>
-          {/* Main Net Balance Card */}
           <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', marginBottom: '16px', border: `1px solid ${borderColor}`, boxShadow: '0 12px 30px -10px rgba(0,0,0,0.08)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: textMuted, fontSize: '13px', fontWeight: '700' }}>{t.netBalance}</span>
@@ -440,13 +487,10 @@ export default function App() {
             </div>
           </div>
 
-          {/* Daily Safe Spend */}
-          <div style={{ background: challengeMode ? 'linear-gradient(135deg, #7f1d1d, #450a0a)' : (theme === 'dark' ? 'linear-gradient(135deg, #1e3a8a, #172554)' : 'linear-gradient(135deg, #dbeafe, #eff6ff)'), padding: '20px', borderRadius: '26px', marginBottom: '16px', border: `1px solid ${borderColor}` }}>
+          <div style={{ background: theme === 'dark' ? 'linear-gradient(135deg, #1e3a8a, #172554)' : 'linear-gradient(135deg, #dbeafe, #eff6ff)', padding: '20px', borderRadius: '26px', marginBottom: '16px', border: `1px solid ${borderColor}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <span style={{ color: challengeMode ? '#fca5a5' : (theme === 'dark' ? '#93c5fd' : '#1d4ed8'), fontSize: '12px', fontWeight: '800' }}>
-                  {t.safeSpend} {challengeMode ? '(🔥 Challenge)' : ''}
-                </span>
+                <span style={{ color: theme === 'dark' ? '#93c5fd' : '#1d4ed8', fontSize: '12px', fontWeight: '800' }}>{t.safeSpend}</span>
                 <div style={{ fontSize: '28px', fontWeight: '900', color: '#ffffff', marginTop: '4px' }}>
                   {formatMoney(dailySafeSpend)} <span style={{ fontSize: '12px', fontWeight: 'normal' }}>/ יום</span>
                 </div>
@@ -457,28 +501,13 @@ export default function App() {
             </div>
           </div>
 
-          {/* Challenge Mode Toggle */}
-          <div style={{ background: cardBg, padding: '16px 20px', borderRadius: '22px', marginBottom: '18px', border: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: 'bold' }}>{t.challengeModeTitle}</div>
-              <div style={{ fontSize: '11px', color: textMuted }}>{t.challengeModeDesc}</div>
-            </div>
-            <button
-              onClick={() => setChallengeMode(!challengeMode)}
-              style={{ background: challengeMode ? '#ef4444' : '#10b981', color: '#ffffff', border: 'none', padding: '8px 18px', borderRadius: '14px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
-            >
-              {challengeMode ? 'ON 🔥' : 'OFF'}
-            </button>
-          </div>
-
-          {/* VISUAL DONUT CHART & CATEGORIES SECTION */}
+          {/* Donut Chart */}
           <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', border: `1px solid ${borderColor}`, marginBottom: '16px' }}>
             <h3 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: '800' }}>{t.categoryBreakdown} 📊</h3>
             {expensesByCategory.length === 0 ? (
               <p style={{ color: textMuted, fontSize: '12px', textAlign: 'center', margin: '20px 0' }}>{t.noTransactions}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {/* SVG Donut */}
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', margin: '10px 0' }}>
                   <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: 'rotate(-90deg)' }}>
                     {expensesByCategory.map((cat, idx) => {
@@ -508,7 +537,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Legend / Category List */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {expensesByCategory.map((cat, idx) => {
                     const percentage = Math.round((cat.total / totalCatExpense) * 100)
@@ -580,56 +608,128 @@ export default function App() {
         </div>
       )}
 
-      {/* TAB 3: BUDGETS & CARDS */}
+      {/* TAB 3: BUDGETS */}
       {activeTab === 'budgets' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: '800' }}>{t.smartBudgetTitle}</h3>
-            <div>
-              <label style={{ display: 'block', fontSize: '12px', color: textMuted, marginBottom: '6px' }}>{t.totalMonthlyBudgetLabel}</label>
-              <input
-                type="number"
-                value={monthlyBudgetLimit === 0 ? '' : monthlyBudgetLimit}
-                onChange={(e) => setMonthlyBudgetLimit(e.target.value === '' ? 0 : parseFloat(e.target.value))}
-                style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px', borderRadius: '16px', fontSize: '16px', fontWeight: 'bold', outline: 'none', boxSizing: 'border-box' }}
-              />
-            </div>
-          </div>
-
-          {/* Credit Cards Management */}
-          <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', border: `1px solid ${borderColor}` }}>
-            <h3 style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: '800' }}>{t.creditCardsTitle}</h3>
-            <form onSubmit={handleAddCard} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-              <input
-                type="text"
-                placeholder={t.cardNamePlaceholder}
-                value={newCardName}
-                onChange={(e) => setNewCardName(e.target.value)}
-                style={{ flexGrow: 1, background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px 14px', borderRadius: '14px', fontSize: '12px', outline: 'none' }}
-              />
-              <select
-                value={newCardBillingDay}
-                onChange={(e) => setNewCardBillingDay(e.target.value)}
-                style={{ background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '14px', fontSize: '12px', outline: 'none' }}
-              >
-                {[1, 10, 15, 20].map(d => <option key={d} value={d}>ה-{d}</option>)}
-              </select>
-              <button type="submit" style={{ background: '#3b82f6', color: '#ffffff', border: 'none', padding: '0 16px', borderRadius: '14px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{t.addCardBtn}</button>
-            </form>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {creditCards.map(card => (
-                <div key={card.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', background: inputBg, padding: '12px 16px', borderRadius: '16px' }}>
-                  <span style={{ fontWeight: 'bold' }}>💳 {card.name} <span style={{ fontSize: '11px', color: textMuted }}>(חיוב ב-{card.billingDay})</span></span>
-                  <button onClick={() => deleteCard(card.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>{t.delete}</button>
-                </div>
-              ))}
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: '800' }}>{t.smartBudgetTitle} 🎯</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {Object.keys(categories).map(catName => {
+                const cat = categories[catName]
+                const spent = monthTransactions.filter(tr => tr.category === catName && Number(tr.amount) < 0).reduce((sum, tr) => sum + Math.abs(Number(tr.amount)), 0)
+                const percentage = cat.limit > 0 ? Math.min(Math.round((spent / cat.limit) * 100), 100) : 0
+                return (
+                  <div key={catName} style={{ background: inputBg, padding: '14px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 'bold' }}>{cat.icon} {catName}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '12px', color: textMuted }}>תקציב:</span>
+                        <input
+                          type="number"
+                          value={cat.limit}
+                          onChange={(e) => handleCategoryLimitChange(catName, e.target.value)}
+                          style={{ width: '80px', background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '4px 8px', borderRadius: '8px', fontSize: '12px', fontWeight: 'bold', outline: 'none', textAlign: 'center' }}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>
+                      <span>הוצאת: {formatMoney(spent)}</span>
+                      <span>{percentage}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: cardBg, borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${percentage}%`, height: '100%', background: percentage > 90 ? '#ef4444' : cat.color, transition: 'width 0.4s ease' }}></div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 4: TOOLS */}
+      {/* TAB 4: SAVINGS GOALS (יעדי חיסכון עם חישוב תאריך) */}
+      {activeTab === 'goals' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', border: `1px solid ${borderColor}` }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: '800' }}>{t.savingsGoalsTitle}</h3>
+            
+            {/* Add Goal Form */}
+            <form onSubmit={handleAddGoal} style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px', background: inputBg, padding: '14px', borderRadius: '18px' }}>
+              <input
+                type="text"
+                placeholder={t.goalNamePlaceholder}
+                value={newGoalName}
+                onChange={(e) => setNewGoalName(e.target.value)}
+                style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '12px', fontSize: '12px', outline: 'none' }}
+                required
+              />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <input
+                  type="number"
+                  placeholder={t.goalTargetPlaceholder}
+                  value={newGoalTarget}
+                  onChange={(e) => setNewGoalTarget(e.target.value)}
+                  style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '12px', fontSize: '12px', outline: 'none' }}
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder={t.goalCurrentPlaceholder}
+                  value={newGoalCurrent}
+                  onChange={(e) => setNewGoalCurrent(e.target.value)}
+                  style={{ background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '12px', fontSize: '12px', outline: 'none' }}
+                />
+              </div>
+              <button type="submit" style={{ background: '#3b82f6', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>{t.addGoalBtn}</button>
+            </form>
+
+            {/* Goals List with Date Calculation */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {savingsGoals.length === 0 ? (
+                <p style={{ color: textMuted, fontSize: '12px', textAlign: 'center', margin: '10px 0' }}>אין יעדי חיסכון פעילים עדיין.</p>
+              ) : (
+                savingsGoals.map(goal => {
+                  const target = Number(goal.target_amount) || 1
+                  const current = Number(goal.current_amount) || 0
+                  const pct = Math.min(Math.round((current / target) * 100), 100)
+                  const remainingMoney = Math.max(target - current, 0)
+                  
+                  // Monthly savings capacity (net balance or default 1000 if net is negative)
+                  const monthlySavingsRate = netBalance > 0 ? netBalance : 1000
+                  const monthsNeeded = Math.ceil(remainingMoney / monthlySavingsRate)
+
+                  // Calculate estimated date
+                  const estDate = new Date()
+                  estDate.setMonth(estDate.getMonth() + monthsNeeded)
+                  const dateStr = estDate.toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { year: 'numeric', month: 'long' })
+
+                  return (
+                    <div key={goal.id} style={{ background: inputBg, padding: '16px', borderRadius: '18px', border: `1px solid ${borderColor}` }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 'bold' }}>🎯 {goal.title}</span>
+                        <button onClick={() => deleteGoal(goal.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}>{t.delete}</button>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: textMuted, marginBottom: '6px' }}>
+                        <span>{formatMoney(current)} / {formatMoney(target)}</span>
+                        <span style={{ fontWeight: 'bold', color: '#10b981' }}>{pct}%</span>
+                      </div>
+                      <div style={{ width: '100%', height: '8px', background: cardBg, borderRadius: '4px', overflow: 'hidden', marginBottom: '10px' }}>
+                        <div style={{ width: `${pct}%`, height: '100%', background: '#10b981', transition: 'width 0.4s ease' }}></div>
+                      </div>
+                      <div style={{ fontSize: '11px', color: textMuted, background: cardBg, padding: '8px 12px', borderRadius: '10px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>{t.monthsToGoal} <strong>{monthsNeeded}</strong> חודשים</span>
+                        <span>{t.estCompletion} <strong style={{ color: textMain }}>{dateStr}</strong></span>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: TOOLS */}
       {activeTab === 'tools' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <div style={{ background: cardBg, padding: '22px', borderRadius: '26px', border: `1px solid ${borderColor}` }}>
@@ -662,19 +762,20 @@ export default function App() {
       </button>
 
       {/* BOTTOM NAVIGATION BAR */}
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: cardBg, borderTop: `1px solid ${borderColor}`, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: '10px 12px 24px 12px', zIndex: 98, backdropFilter: 'blur(10px)' }}>
+      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: cardBg, borderTop: `1px solid ${borderColor}`, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', padding: '10px 6px 24px 6px', zIndex: 98, backdropFilter: 'blur(10px)' }}>
         {[
           { id: 'dashboard', label: t.dashboard, icon: '📊' },
           { id: 'transactions', label: t.transactions, icon: '💳' },
           { id: 'budgets', label: t.budgets, icon: '🎯' },
+          { id: 'goals', label: t.goalsTab, icon: '🏆' },
           { id: 'tools', label: t.tools, icon: '⚙️' }
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            style={{ background: 'transparent', color: activeTab === tab.id ? '#3b82f6' : textMuted, border: 'none', padding: '6px 0', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}
+            style={{ background: 'transparent', color: activeTab === tab.id ? '#3b82f6' : textMuted, border: 'none', padding: '6px 0', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px' }}
           >
-            <span style={{ fontSize: '22px' }}>{tab.icon}</span>
+            <span style={{ fontSize: '20px' }}>{tab.icon}</span>
             <span>{tab.label}</span>
           </button>
         ))}
@@ -720,17 +821,6 @@ export default function App() {
                   <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px', borderRadius: '16px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}>
                     {Object.keys(categories).map(cat => (
                       <option key={cat} value={cat}>{categories[cat].icon} {cat}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {type === 'expense' && (
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', color: textMuted, marginBottom: '4px' }}>כרטיס אשראי משויך</label>
-                  <select value={selectedCardId} onChange={(e) => setSelectedCardId(Number(e.target.value))} style={{ width: '100%', background: inputBg, color: textMain, border: `1px solid ${borderColor}`, padding: '14px', borderRadius: '16px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}>
-                    {creditCards.map(card => (
-                      <option key={card.id} value={card.id}>💳 {card.name} (חיוב {card.billingDay})</option>
                     ))}
                   </select>
                 </div>
