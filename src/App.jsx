@@ -635,7 +635,7 @@ export default function App() {
   const [editGoalName, setEditGoalName] = useState('')
   const [editGoalAmount, setEditGoalAmount] = useState('')
 
-  // תקציב חודשי חכם ומגבלות (ללא הגבלת מינימום ספרות)
+  // תקציב חודשי חכם ומגבלות
   const [monthlyBudgetLimit, setMonthlyBudgetLimit] = useState(() => {
     const saved = localStorage.getItem('mymoney_monthly_budget')
     return saved !== null ? Number(saved) : 9000
@@ -714,11 +714,6 @@ export default function App() {
     setSavingsGoals(savingsGoals.filter(g => g.id !== id))
   }
 
-  function saveEditedGoal(id) {
-    setSavingsGoals(savingsGoals.map(g => g.id === id ? { ...g, name: editGoalName, target: parseFloat(editGoalAmount) || g.target } : g))
-    setEditingGoalId(null)
-  }
-
   function handleUpdateTotalBudget(newTotal) {
     const val = newTotal === '' ? 0 : parseFloat(newTotal)
     const currentSumLimits = Object.values(categories).reduce((acc, c) => acc + c.limit, 0)
@@ -759,7 +754,6 @@ export default function App() {
     return { name: catName, total, ...categories[catName] }
   }).filter(cat => cat.total > 0)
 
-  // פונקציית חישוב תאריך הגעה משוער ליעד לפי היתרה החודשית נטו
   function calculateTargetDate(targetAmount) {
     if (netBalance <= 0) return t.noTarget
     const monthsNeeded = targetAmount / netBalance
@@ -769,7 +763,6 @@ export default function App() {
     return targetDateObj.toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { year: 'numeric', month: 'short' })
   }
 
-  // יצירת גרף עוגה מבוסס SVG
   let cumulativePercent = 0
   const svgSlices = expensesByCategory.map((cat, index) => {
     const percentage = totalExpense > 0 ? (cat.total / totalExpense) * 100 : 0
@@ -872,7 +865,6 @@ export default function App() {
       {/* TAB 1: DASHBOARD */}
       {activeTab === 'dashboard' && (
         <div>
-          {/* Net Balance Card */}
           <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', marginBottom: '12px', border: `1px solid ${borderColor}`, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
             <span style={{ color: textMuted, fontSize: '12px', fontWeight: '600' }}>{t.netBalance}</span>
             <div style={{ fontSize: '28px', fontWeight: '900', color: netBalance >= 0 ? '#10b981' : '#ef4444', margin: '4px 0 12px 0' }}>
@@ -890,7 +882,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Safe Spend Card */}
           <div style={{ background: theme === 'dark' ? 'linear-gradient(135deg, #1e3a8a, #1e1b4b)' : 'linear-gradient(135deg, #dbeafe, #eff6ff)', padding: '16px', borderRadius: '16px', marginBottom: '16px', border: `1px solid ${borderColor}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
@@ -905,7 +896,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Expense Breakdown & Chart */}
           <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}`, marginBottom: '16px' }}>
             <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '700' }}>{t.categoryBreakdown}</h3>
             {expensesByCategory.length === 0 ? (
@@ -987,11 +977,10 @@ export default function App() {
         </div>
       )}
 
-      {/* TAB 3: BUDGETS & GOALS (עם מחשבון תאריך יעד פעיל) */}
+      {/* TAB 3: BUDGETS & GOALS */}
       {activeTab === 'budgets' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
-          {/* Smart Budget & Total Limit */}
           <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
             <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: '700' }}>{t.smartBudgetTitle}</h3>
             {budgetError && <div style={{ background: '#ef444422', color: '#ef4444', padding: '8px 10px', borderRadius: '8px', fontSize: '11px', marginBottom: '10px' }}>{budgetError}</div>}
@@ -1017,13 +1006,13 @@ export default function App() {
 
                 return (
                   <div key={catName} style={{ background: inputBg, padding: '10px', borderRadius: '10px', border: `1px solid ${borderColor}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', fontSize: '12px', marginBottom: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', marginBottom: '6px' }}>
                       <span style={{ fontWeight: 'bold' }}>{cat.icon} {catName}</span>
                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         <span style={{ color: textMuted }}>₪{spent} /</span>
                         <input
                           type="number"
-                          value={editingCategory === catName ? cat.limit : cat.limit}
+                          value={cat.limit}
                           onChange={(e) => {
                             const val = e.target.value === '' ? 0 : parseFloat(e.target.value)
                             setCategories({
@@ -1035,7 +1024,7 @@ export default function App() {
                         />
                       </div>
                     </div>
-                    <div style={{ width: '100%0', background: borderColor, height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{ width: '100%', background: borderColor, height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
                       <div style={{ width: `${pct}%`, background: pct > 90 ? '#ef4444' : cat.color, height: '100%', borderRadius: '3px', transition: 'width 0.3s' }}></div>
                     </div>
                   </div>
@@ -1044,7 +1033,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Savings Goals & Target Date */}
           <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
             <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '700' }}>{t.savingsGoalsTitle}</h3>
             
@@ -1097,7 +1085,6 @@ export default function App() {
       {/* TAB 4: TOOLS & ANALYTICS */}
       {activeTab === 'tools' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Subscription Radar */}
           <div style={{ background: cardBg, padding: '16px', borderRadius: '16px', border: `1px solid ${borderColor}` }}>
             <h3 style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: '700' }}>{t.subscriptionRadar} 📡</h3>
             <div style={{ fontSize: '12px', color: textMuted, marginBottom: '12px' }}>
@@ -1117,7 +1104,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Export CSV Button */}
           <button
             onClick={exportToCSV}
             style={{ width: '100%', background: cardBg, color: textMain, border: `1px solid ${borderColor}`, padding: '12px', borderRadius: '14px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
